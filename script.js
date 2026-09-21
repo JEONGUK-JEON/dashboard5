@@ -25,7 +25,19 @@ const number = (value, digits = 0) => new Intl.NumberFormat("ko-KR", { maximumFr
 const moneyMillion = (value, digits = 0) => number(Number(value || 0) / 1_000_000, digits);
 const moneyBillion = (value, digits = 1) => number(Number(value || 0) / 100_000_000, digits);
 const percent = (value, digits = 1) => value == null || !Number.isFinite(value) ? "-" : `${number(value * 100, digits)}%`;
-const periodLabel = (period, report) => report === "weekly" ? period.replace(/^(\d{4})-W(\d{2})$/, "$1년 $2주차") : period.replace(/^(\d{4})-(\d{2})$/, "$1년 $2월");
+const periodLabel = (period, report) => {
+  if (report !== "weekly") return period.replace(/^(\d{4})-(\d{2})$/, "$1년 $2월");
+  const asOf = state.data?.weekly?.find((item) => item.period === period)?.asOf;
+  const match = String(asOf || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return period.replace(/^(\d{4})-W(\d{2})$/, "$1년 $2주차");
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const firstDay = new Date(year, month - 1, 1).getDay();
+  const mondayOffset = (firstDay + 6) % 7;
+  const weekOfMonth = Math.ceil((day + mondayOffset) / 7);
+  return `${match[1]}년 ${Number(match[2])}월 ${weekOfMonth}주차`;
+};
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -39,8 +51,6 @@ function bindEvents() {
   $("#logoutButton").addEventListener("click", logout);
   $$(".report-tab").forEach((button) => button.addEventListener("click", () => switchReport(button.dataset.report)));
   $("#periodSelect").addEventListener("change", (event) => { state.period = event.target.value; render(); });
-  $("#divisionSelect").addEventListener("change", (event) => { state.division = event.target.value; state.office = "전체"; refreshOfficeSelect(); render(); });
-  $("#officeSelect").addEventListener("change", (event) => { state.office = event.target.value; render(); });
   $("#openImportButton").addEventListener("click", () => $("#importDialog").showModal());
   $("#convertButton").addEventListener("click", convertExcelFiles);
   $("#downloadButton").addEventListener("click", downloadImportedData);
@@ -92,9 +102,9 @@ function validateData(data) {
 
 function initializeFilters() {
   $("#updatedAt").textContent = state.data.meta?.updatedAt || "-";
-  $("#divisionSelect").innerHTML = ["전체", ...DIVISIONS].map((value) => `<option value="${value}">${value === "전체" ? "전체 본부" : `${value} 본부`}</option>`).join("");
+  renderDivisionButtons();
   refreshPeriodSelect();
-  refreshOfficeSelect();
+  refreshOfficeButtons();
 }
 
 function switchReport(report) {
@@ -115,15 +125,31 @@ function refreshPeriodSelect() {
   $("#periodSelect").value = state.period;
 }
 
-function refreshOfficeSelect() {
+function renderDivisionButtons() {
+  const values = ["전체", ...DIVISIONS];
+  $("#divisionButtons").innerHTML = values.map((value) => `<button type="button" class="filter-choice${state.division === value ? " active" : ""}" data-division="${value}" aria-pressed="${state.division === value}">${value === "전체" ? "전체" : value}</button>`).join("");
+  $$("#divisionButtons .filter-choice").forEach((button) => button.addEventListener("click", () => {
+    state.division = button.dataset.division;
+    state.office = "전체";
+    renderDivisionButtons();
+    refreshOfficeButtons();
+    render();
+  }));
+}
+
+function refreshOfficeButtons() {
   const offices = state.data.organization
     .filter((item) => state.division === "전체" || item.division === state.division)
     .flatMap((item) => item.offices)
     .filter((value, index, array) => array.indexOf(value) === index)
     .sort((a, b) => a.localeCompare(b, "ko"));
-  $("#officeSelect").innerHTML = ["전체", ...offices].map((value) => `<option value="${value}">${value === "전체" ? "전체 영업소" : `${value} 영업소`}</option>`).join("");
-  $("#officeSelect").value = offices.includes(state.office) ? state.office : "전체";
-  state.office = $("#officeSelect").value;
+  if (!offices.includes(state.office)) state.office = "전체";
+  $("#officeButtons").innerHTML = ["전체", ...offices].map((value) => `<button type="button" class="filter-choice${state.office === value ? " active" : ""}" data-office="${value}" aria-pressed="${state.office === value}">${value === "전체" ? "전체" : value}</button>`).join("");
+  $$("#officeButtons .filter-choice").forEach((button) => button.addEventListener("click", () => {
+    state.office = button.dataset.office;
+    refreshOfficeButtons();
+    render();
+  }));
 }
 
 function filteredRecords() {
@@ -314,9 +340,18 @@ function renderProductViews(rows) {
 
 function renderMonthlyTable(rows) {
   const groups = aggregate(rows, ["division", "office"], ["quantityDrum", "quantityEa", "revenue", "grossProfit", "operatingProfit"]);
-  groups.sort((a, b) => b.revenue - a.revenue);
-  const body = groups.map((row) => `<tr><td>${escapeHtml(row.division)}</td><td>${escapeHtml(row.office)}</td><td>${number(row.quantityDrum, 1)}</td><td>${number(row.quantityEa)}</td><td>${moneyMillion(row.revenue, 1)}</td><td>${moneyMillion(row.grossProfit, 1)}</td><td>${percent(safeRate(row.grossProfit, row.revenue))}</td><td>${moneyMillion(row.operatingProfit, 1)}</td><td class="${row.operatingProfit < 0 ? "rate-negative" : "rate-positive"}">${percent(safeRate(row.operatingProfit, row.revenue))}</td></tr>`).join("");
+  const visibleDivisions = DIVISIONS.filter((division) => groups.some((row) => row.division === division));
+  const body = visibleDivisions.map((division) => {
+    const offices = groups.filter((row) => row.division === division).sort((a, b) => b.revenue - a.revenue);
+    const total = aggregate(offices, ["division"], ["quantityDrum", "quantityEa", "revenue", "grossProfit", "operatingProfit"])[0];
+    const totalRow = state.office === "전체" && total ? monthlyResultRow(total, `${division} 합계`, true) : "";
+    return totalRow + offices.map((row) => monthlyResultRow(row, row.office, false)).join("");
+  }).join("");
   $("#monthlyTable").innerHTML = `<thead><tr><th>본부</th><th>영업소</th><th>DRUM</th><th>EA</th><th>매출</th><th>매출이익</th><th>매출이익률</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody>${body || emptyRow(9)}</tbody>`;
+}
+
+function monthlyResultRow(row, label, isSubtotal) {
+  return `<tr class="${isSubtotal ? "subtotal-row" : "office-row"}"><td>${escapeHtml(row.division)}</td><td>${escapeHtml(label)}</td><td>${number(row.quantityDrum, 1)}</td><td>${number(row.quantityEa)}</td><td>${moneyMillion(row.revenue, 1)}</td><td>${moneyMillion(row.grossProfit, 1)}</td><td>${percent(safeRate(row.grossProfit, row.revenue))}</td><td>${moneyMillion(row.operatingProfit, 1)}</td><td class="${row.operatingProfit < 0 ? "rate-negative" : "rate-positive"}">${percent(safeRate(row.operatingProfit, row.revenue))}</td></tr>`;
 }
 
 function emptyRow(columns) { return `<tr><td colspan="${columns}" class="empty-cell">선택 조건에 해당하는 데이터가 없습니다.</td></tr>`; }
