@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "company": "BWC",
+    "title": "BWC 영업 대시보드",
+    "updatedAt": "2026-08-21",
+    "currency": "KRW",
+    "weeklySource": "※ 작성방법_주 마감.xlsx",
+    "monthlySource": "※ 작성방법_마감자료.xlsx",
+    "notes": [
+      "미수 관련 시트와 지표는 제외했습니다.",
+      "현재 월간 원본에는 유종 열이 없어 product 값을 '유종 미분류'로 저장했습니다."
+    ]
+  },
+  "organization": [
+    { "division": "동부", "offices": ["부산", "울산", "포항"] },
+    { "division": "중부", "offices": ["광주", "천안", "충주"] },
+    { "division": "서부", "offices": ["수원", "인천"] }
+  ],
+  "weekly": [
+    {
+      "period": "2026-W34",
+      "asOf": "2026-08-21",
+      "records": [
+        { "division": "서부", "office": "수원", "officeCode": "A1320", "packageUnit": "DRUM", "planQuantity": 1793.2, "quantity": 1023.15, "priorQuantity": 1395.51, "planRevenue": 1145380315, "revenue": 789054940, "priorRevenue": 883544025, "ytdPlanQuantity": 13668.7, "ytdQuantity": 10824.81, "ytdPriorQuantity": 11437.11, "ytdPlanRevenue": 8794356800, "ytdRevenue": 7537516931, "ytdPriorRevenue": 7246726845 },
+        { "division": "서부", "office": "수원", "officeCode": "A1320", "packageUnit": "EA", "planQuantity": 892, "quantity": 212, "priorQuantity": 1630, "planRevenue": 4412956, "revenue": 1625904, "priorRevenue": 7656412, "ytdPlanQuantity": 8912, "ytdQuantity": 10265, "ytdPriorQuantity": 8229, "ytdPlanRevenue": 41257616, "ytdRevenue": 31749314, "ytdPriorRevenue": 32809031 },
+        { "division": "서부", "office": "인천", "officeCode": "A1310", "packageUnit": "DRUM", "planQuantity": 3401.7, "quantity": 1364.34, "priorQuantity": 2949.2, "planRevenue": 1854251050, "revenue": 1045993900, "priorRevenue": 1607643350, "ytdPlanQuantity": 23846.8, "ytdQuantity": 19127.74, "ytdPriorQuantity": 21733.47, "ytdPlanRevenue": 13581671010, "ytdRevenue": 13023964987, "ytdPriorRevenue": 12402836840 },
+        { "division": "서부", "office": "인천", "officeCode": "A1310", "packageUnit": "EA", "planQuantity": 3115, "quantity": 144, "priorQuantity": 670, "planRevenue": 25618880, "revenue": 642000, "priorRevenue": 3916360, "ytdPlanQuantity": 25938, "ytdQuantity": 6065, "ytdPriorQuantity": 20495, "ytdPlanRevenue": 202466820, "ytdRevenue": 31668040, "ytdPriorRevenue": 152912560 },
+        { "division": "중부", "office": "광주", "officeCode": "A1332", "packageUnit": "DRUM", "planQuantity": 722.6, "quantity": 185, "priorQuantity": 480.8, "planRevenue": 364155370, "revenue": 129652760, "priorRevenue": 237283020, "ytdPlanQuantity": 5021.4, "ytdQuantity": 4452.67, "ytdPriorQuantity": 4864.79, "ytdPlanRevenue": 2519943729, "ytdRevenue": 2517643880, "ytdPriorRevenue": 2494787620 },
+        { "division": "중부", "office": "광주", "officeCode": "A1332", "packageUnit": "EA", "planQuantity": 6318, "quantity": 6000, "priorQuantity": 5842, "planRevenue": 23951716, "revenue": 22617840, "priorRevenue": 23753840, "ytdPlanQuantity": 55441, "ytdQuantity": 51575, "ytdPriorQuantity": 58233, "ytdPlanRevenue": 216451462, "ytdRevenue": 215311380, "ytdPriorRevenue": 222879222 },
+        { "division": "중부", "office": "천안", "officeCode": "A1340", "packageUnit": "DRUM", "planQuantity": 3818.69, "quantity": 2349.67, "priorQuantity": 3763.11, "planRevenue": 2211602647, "revenue": 1603997610, "priorRevenue": 2214097416, "ytdPlanQuantity": 30752.5, "ytdQuantity": 31877.84, "ytdPriorQuantity": 27796.98, "ytdPlanRevenue": 17774732795, "ytdRevenue": 20994971049, "ytdPriorRevenue": 16375178396 },
+        { "division": "중부", "office": "천안", "officeCode": "A1340", "packageUnit": "EA", "planQuantity": 19468, "quantity": 2527, "priorQuantity": 3175, "planRevenue": 61104832, "revenue": 11979899, "priorRevenue": 13537510, "ytdPlanQuantity": 183792, "ytdQuantity": 42056, "ytdPriorQuantity": 39137, "ytdPlanRevenue": 488401808, "ytdRevenue": 120325241, "ytdPriorRevenue": 77430590 },
+        { "division": "중부", "office": "충주", "officeCode": "A1250", "packageUnit": "DRUM", "planQuantity": 322.2, "quantity": 37.1, "priorQuantity": 28.1, "planRevenue": 136939000, "revenue": 30893100, "priorRevenue": 20446000, "ytdPlanQuantity": 1745, "ytdQuantity": 266.4, "ytdPriorQuantity": 168.2, "ytdPlanRevenue": 755080000, "ytdRevenue": 202781700, "ytdPriorRevenue": 124065000 },
+        { "division": "중부", "office": "충주", "officeCode": "A1250", "packageUnit": "EA", "planQuantity": 0, "quantity": 15541, "priorQuantity": 0, "planRevenue": 0, "revenue": 4595000, "priorRevenue": 0, "ytdPlanQuantity": 0, "ytdQuantity": 75922, "ytdPriorQuantity": 0, "ytdPlanRevenue": 0, "ytdRevenue": 12575000, "ytdPriorRevenue": 0 },
+        { "division": "동부", "office": "부산", "officeCode": "A1210", "packageUnit": "DRUM", "planQuantity": 3982.6, "quantity": 2591.59, "priorQuantity": 3429.2, "planRevenue": 2159794400, "revenue": 1810388757, "priorRevenue": 1849190560, "ytdPlanQuantity": 32252, "ytdQuantity": 30670.72, "ytdPriorQuantity": 28162.8, "ytdPlanRevenue": 17468520100, "ytdRevenue": 19249423646, "ytdPriorRevenue": 15285534831 },
+        { "division": "동부", "office": "부산", "officeCode": "A1210", "packageUnit": "EA", "planQuantity": 413, "quantity": 977, "priorQuantity": 420, "planRevenue": 2671792, "revenue": 6016700, "priorRevenue": 1788336, "ytdPlanQuantity": 3380, "ytdQuantity": 8721, "ytdPriorQuantity": 3484, "ytdPlanRevenue": 22127008, "ytdRevenue": 51268934, "ytdPriorRevenue": 25404780 },
+        { "division": "동부", "office": "울산", "officeCode": "A1220", "packageUnit": "DRUM", "planQuantity": 2582.3, "quantity": 1135.3, "priorQuantity": 1894.62, "planRevenue": 1528416029, "revenue": 870056702, "priorRevenue": 1025898655, "ytdPlanQuantity": 19032.6, "ytdQuantity": 13407.24, "ytdPriorQuantity": 15641.82, "ytdPlanRevenue": 11146242701, "ytdRevenue": 8709253890, "ytdPriorRevenue": 8993678887 },
+        { "division": "동부", "office": "울산", "officeCode": "A1220", "packageUnit": "EA", "planQuantity": 2206, "quantity": 1400, "priorQuantity": 2112, "planRevenue": 7446646, "revenue": 3354592, "priorRevenue": 1775200, "ytdPlanQuantity": 23606, "ytdQuantity": 11095, "ytdPriorQuantity": 11145, "ytdPlanRevenue": 69415698, "ytdRevenue": 33025453, "ytdPriorRevenue": 25596465 },
+        { "division": "동부", "office": "포항", "officeCode": "A1230", "packageUnit": "DRUM", "planQuantity": 1837.4, "quantity": 960.5, "priorQuantity": 1776.44, "planRevenue": 1047531150, "revenue": 731075534, "priorRevenue": 991496680, "ytdPlanQuantity": 14413.9, "ytdQuantity": 12820.31, "ytdPriorQuantity": 13058.21, "ytdPlanRevenue": 8234238440, "ytdRevenue": 8800967005, "ytdPriorRevenue": 7342177940 },
+        { "division": "동부", "office": "포항", "officeCode": "A1230", "packageUnit": "EA", "planQuantity": 24, "quantity": 0, "priorQuantity": 24, "planRevenue": 103200, "revenue": 0, "priorRevenue": 103200, "ytdPlanQuantity": 476, "ytdQuantity": 404, "ytdPriorQuantity": 432, "ytdPlanRevenue": 2211600, "ytdRevenue": 1988000, "ytdPriorRevenue": 2359400 }
+      ]
+    }
+  ],
+  "monthly": [
+    {
+      "period": "2026-07",
+      "records": [
+        { "division": "동부", "office": "부산", "officeCode": "A1210", "product": "유종 미분류", "quantityDrum": 4379.9, "quantityEa": 1447, "revenue": 3191146845, "grossProfit": 772390729, "operatingProfit": 463717618 },
+        { "division": "동부", "office": "울산", "officeCode": "A1220", "product": "유종 미분류", "quantityDrum": 1854.84, "quantityEa": 412, "revenue": 1307774595, "grossProfit": 257208808, "operatingProfit": 85856647 },
+        { "division": "동부", "office": "포항", "officeCode": "A1230", "product": "유종 미분류", "quantityDrum": 1862.7, "quantityEa": 0, "revenue": 1697126980, "grossProfit": 712861294, "operatingProfit": 532183634 },
+        { "division": "중부", "office": "광주", "officeCode": "A1332", "product": "유종 미분류", "quantityDrum": 617.8, "quantityEa": 3225, "revenue": 425311350, "grossProfit": 64153522, "operatingProfit": 2716871 },
+        { "division": "중부", "office": "천안", "officeCode": "A1340", "product": "유종 미분류", "quantityDrum": 4626.05, "quantityEa": 3808, "revenue": 3174254443, "grossProfit": 378098760, "operatingProfit": 59961899 },
+        { "division": "중부", "office": "충주", "officeCode": "A1250", "product": "유종 미분류", "quantityDrum": 38.4, "quantityEa": 60241, "revenue": 40661600, "grossProfit": 11203741, "operatingProfit": -729204 },
+        { "division": "서부", "office": "수원", "officeCode": "A1320", "product": "유종 미분류", "quantityDrum": 1258.53, "quantityEa": 3384, "revenue": 932873665, "grossProfit": 203475525, "operatingProfit": 69375604 },
+        { "division": "서부", "office": "인천", "officeCode": "A1310", "product": "유종 미분류", "quantityDrum": 2058.08, "quantityEa": 731, "revenue": 1632010000, "grossProfit": 509321078, "operatingProfit": 326441239 }
+      ]
+    }
+  ],
+  "monthlyTrend": [
+    { "period": "2026-01", "quantityDrum": 17899.31, "quantityEa": 12021, "revenue": 9570072980, "operatingProfit": 881916244, "operatingMargin": 0.092154 },
+    { "period": "2026-02", "quantityDrum": 16501.68, "quantityEa": 15705, "revenue": 9192940246, "operatingProfit": 811695255, "operatingMargin": 0.088295 },
+    { "period": "2026-03", "quantityDrum": 19834.48, "quantityEa": 22454, "revenue": 10918450393, "operatingProfit": 923844267, "operatingMargin": 0.084613 },
+    { "period": "2026-04", "quantityDrum": 20333.62, "quantityEa": 16888, "revenue": 13303020630, "operatingProfit": 1802240638, "operatingMargin": 0.135476 },
+    { "period": "2026-05", "quantityDrum": 18911.6, "quantityEa": 15488, "revenue": 12711572031, "operatingProfit": 1077408962, "operatingMargin": 0.084758 },
+    { "period": "2026-06", "quantityDrum": 17336.51, "quantityEa": 31181, "revenue": 12176341992, "operatingProfit": 884521171, "operatingMargin": 0.072643 },
+    { "period": "2026-07", "quantityDrum": 18912.9, "quantityEa": 73375, "revenue": 13473067985, "operatingProfit": 1595749745, "operatingMargin": 0.11844 }
+  ]
+}

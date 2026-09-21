@@ -1,296 +1,175 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>범우연합 통합 대시보드</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c2240">
+  <title>BWC 영업 대시보드</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css"/>
-  <script>
-    window.DASHBOARD_CONFIG = {
-      passwordHash: "914f4ddc2eb030e8caafbbca442a1aa3eccbb93f316766c251efb2d51493fb5f"
-    };
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<!-- ══ 게이트 ══ -->
-<div id="gate" class="gate-wrap">
-  <div class="gate-card">
-    <div class="gate-badge">PRIVATE DASHBOARD</div>
-    <h1>범우연합 대시보드</h1>
-    <p class="gate-desc">접속 비밀번호를 입력하세요.</p>
-    <div class="gate-form">
-      <input id="passwordInput" type="password" placeholder="비밀번호" autocomplete="off"/>
-      <button id="unlockBtn">입장</button>
+  <section id="loginView" class="login-shell" aria-label="로그인">
+    <div class="login-panel">
+      <div class="brand-mark" aria-hidden="true">B</div>
+      <p class="eyebrow">BWC PRIVATE REPORT</p>
+      <h1>영업 실적 대시보드</h1>
+      <p class="login-copy">주간 수량·매출과 월간 이익 현황을 한곳에서 확인합니다.</p>
+      <form id="loginForm" class="login-form">
+        <label for="passwordInput">접속 비밀번호</label>
+        <div class="password-row">
+          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
+          <button type="submit" class="button primary">접속</button>
+        </div>
+        <p id="loginMessage" class="form-message" role="alert"></p>
+      </form>
+      <p class="security-note">내부 공유용 간편 잠금 화면입니다.</p>
     </div>
-    <p id="gateMsg" class="gate-msg"></p>
-  </div>
-</div>
+  </section>
 
-<!-- ══ 앱 ══ -->
-<div id="app" class="app hidden">
-
-  <!-- 헤더 -->
-  <header class="hero">
-    <div class="hero-left">
-      <div class="hero-badge" id="heroBadge">Unified Dashboard</div>
-      <h1 id="heroTitle">범우연합 통합 대시보드</h1>
-      <p id="heroDesc">매출 및 채권 현황을 통합 조회합니다.</p>
-    </div>
-    <div class="hero-right">
-      <div class="hero-meta">
-        <span class="meta-label">기준월</span>
-        <strong>2026-04</strong>
+  <div id="app" class="app is-hidden">
+    <header class="topbar">
+      <div class="brand-row">
+        <div class="brand-mark small" aria-hidden="true">B</div>
+        <div>
+          <p class="eyebrow">BWC SALES PERFORMANCE</p>
+          <h1>BWC 영업 대시보드</h1>
+        </div>
       </div>
-      <div class="hero-controls">
-        <button id="btnBackToMain" class="control-btn">📁 대시보드 이동</button>
-        <button id="btnAppLogout" class="control-btn logout-btn">🚪 로그아웃</button>
+      <div class="top-actions">
+        <div class="updated-pill"><span>최종 업데이트</span><strong id="updatedAt">-</strong></div>
+        <button id="openImportButton" class="button ghost" type="button">Excel 업데이트</button>
+        <button id="logoutButton" class="button text" type="button">로그아웃</button>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- 탭 전환 -->
-  <div class="tab-bar">
-    <button class="tab-btn tab-unified active" id="tabUnified" onclick="switchTab('unified')">🔗 통합</button>
-    <button class="tab-btn tab-sales"          id="tabSales"   onclick="switchTab('sales')">📈 매출분석</button>
-    <button class="tab-btn tab-bond"           id="tabBond"    onclick="switchTab('bond')">📋 채권현황</button>
-  </div>
+    <main>
+      <section class="report-switcher" aria-label="보고서 선택">
+        <button class="report-tab active" data-report="weekly" type="button">
+          <span>주간보고</span><small>수량 · 매출</small>
+        </button>
+        <button class="report-tab" data-report="monthly" type="button">
+          <span>월간보고</span><small>수량 · 매출 · 이익 · 이익률</small>
+        </button>
+      </section>
 
-  <!-- ════════════════════════════════════
-       통합 뷰
-  ════════════════════════════════════ -->
-  <div id="viewUnified">
+      <section class="toolbar panel">
+        <div class="filter-group">
+          <label for="periodSelect">기준기간</label>
+          <select id="periodSelect"></select>
+        </div>
+        <div class="filter-group">
+          <label for="divisionSelect">영업본부</label>
+          <select id="divisionSelect"></select>
+        </div>
+        <div class="filter-group">
+          <label for="officeSelect">영업소</label>
+          <select id="officeSelect"></select>
+        </div>
+        <div class="selection-summary">
+          <span id="reportLabel">주간보고</span>
+          <strong id="selectionLabel">전체 본부 · 전체 영업소</strong>
+        </div>
+      </section>
 
-    <!-- 법인 선택 -->
-    <section class="filter-panel">
-      <div class="filter-layout">
-        <div class="filter-left">
-          <div class="filter-header">
-            <div>
-              <h2>법인 선택</h2>
-              <p>법인을 선택하면 매출·채권 데이터가 함께 갱신됩니다.</p>
+      <section id="dataNotice" class="data-notice is-hidden" role="status"></section>
+
+      <section id="kpiGrid" class="kpi-grid" aria-label="핵심 지표"></section>
+
+      <section id="weeklyView" class="view-section">
+        <div class="dashboard-grid wide-left">
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div><p class="section-kicker">OFFICE COMPARISON</p><h2>영업소별 수량</h2></div>
+              <span class="unit-chip">DRUM / EA</span>
             </div>
-          </div>
-          <div id="u_entityButtons" class="entity-buttons"></div>
+            <div class="chart-area"><canvas id="weeklyQuantityChart"></canvas></div>
+          </article>
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div><p class="section-kicker">REVENUE SHARE</p><h2>본부별 매출 비중</h2></div>
+              <span class="unit-chip">백만원</span>
+            </div>
+            <div class="chart-area compact"><canvas id="weeklyShareChart"></canvas></div>
+          </article>
         </div>
-        <aside class="filter-summary">
-          <div class="filter-summary-header"><h3>선택 법인 정보</h3><p>현재 선택 상태</p></div>
-          <div class="detail-list compact-detail">
-            <div class="detail-item"><span>법인명</span><strong id="u_selName">-</strong></div>
-            <div class="detail-item"><span>구분</span><strong id="u_selGroup">-</strong></div>
-            <div class="detail-item"><span>기준월</span><strong id="u_selMonth">2026-04</strong></div>
-            <div class="detail-item"><span>당월매출</span><strong id="u_selSales">-</strong></div>
-            <div class="detail-item"><span>채권합계</span><strong id="u_selBond">-</strong></div>
+        <article class="panel table-panel">
+          <div class="panel-heading">
+            <div><p class="section-kicker">WEEKLY DETAIL</p><h2>영업소 실적 상세</h2></div>
+            <span class="unit-chip">금액: 백만원</span>
           </div>
-        </aside>
-      </div>
-    </section>
+          <div class="table-scroll"><table id="weeklyTable"></table></div>
+        </article>
+      </section>
 
-    <!-- 통합 KPI -->
-    <div class="unified-kpi-row">
-      <div class="unified-kpi-block">
-        <div class="unified-block-title"><span class="dot dot-sales"></span>매출분석</div>
-        <div class="ukpi-grid">
-          <div class="ukpi-item c-blue">  <div class="ukpi-label">당월매출</div>   <div class="ukpi-val" id="u_s_cur">-</div>  <div class="ukpi-sub">기준월 매출</div></div>
-          <div class="ukpi-item c-sky">   <div class="ukpi-label">전년동월대비</div><div class="ukpi-val" id="u_s_yoy">-</div>  <div class="ukpi-sub">YoY</div></div>
-          <div class="ukpi-item c-teal">  <div class="ukpi-label">누계(YTD)</div>  <div class="ukpi-val" id="u_s_ytd">-</div>  <div class="ukpi-sub">1월~기준월</div></div>
-          <div class="ukpi-item c-violet"><div class="ukpi-label">작년누계</div>   <div class="ukpi-val" id="u_s_pytd">-</div> <div class="ukpi-sub">전년 동기간</div></div>
-          <div class="ukpi-item c-orange"><div class="ukpi-label">작년 총매출</div><div class="ukpi-val" id="u_s_pytot">-</div><div class="ukpi-sub">전년 연간</div></div>
-          <div class="ukpi-item c-green"> <div class="ukpi-label">12M 평균</div>   <div class="ukpi-val" id="u_s_ma12">-</div> <div class="ukpi-sub">12개월 MA</div></div>
+      <section id="monthlyView" class="view-section is-hidden">
+        <div class="dashboard-grid wide-left">
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div><p class="section-kicker">MONTHLY TREND</p><h2>매출과 영업이익률 추이</h2></div>
+              <span class="unit-chip">억원 / %</span>
+            </div>
+            <div class="chart-area"><canvas id="monthlyTrendChart"></canvas></div>
+          </article>
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div><p class="section-kicker">PROFITABILITY</p><h2>영업소별 이익률</h2></div>
+              <span class="unit-chip">영업이익률</span>
+            </div>
+            <div class="chart-area compact"><canvas id="officeMarginChart"></canvas></div>
+          </article>
         </div>
-      </div>
-      <div class="unified-kpi-block">
-        <div class="unified-block-title"><span class="dot dot-bond"></span>채권현황</div>
-        <div class="ukpi-grid">
-          <div class="ukpi-item c-blue">  <div class="ukpi-label">채권 합계</div>    <div class="ukpi-val" id="u_b_tot">-</div>  <div class="ukpi-sub">당월 전체</div></div>
-          <div class="ukpi-item c-sky">   <div class="ukpi-label">3개월이내(A)</div> <div class="ukpi-val" id="u_b_3m">-</div>   <div class="ukpi-sub" id="u_b_3m_p">-</div></div>
-          <div class="ukpi-item c-teal">  <div class="ukpi-label">4~6개월(B)</div>  <div class="ukpi-val" id="u_b_46m">-</div>  <div class="ukpi-sub" id="u_b_46m_p">-</div></div>
-          <div class="ukpi-item c-orange"><div class="ukpi-label">7~12개월(C)</div> <div class="ukpi-val" id="u_b_712m">-</div> <div class="ukpi-sub" id="u_b_712m_p">-</div></div>
-          <div class="ukpi-item c-red">   <div class="ukpi-label">1년초과(D)</div>  <div class="ukpi-val" id="u_b_ov1">-</div>  <div class="ukpi-sub" id="u_b_ov1_p">-</div></div>
-          <div class="ukpi-item c-violet"><div class="ukpi-label">전월대비</div>     <div class="ukpi-val" id="u_b_mom">-</div>  <div class="ukpi-sub" id="u_b_yoy">-</div></div>
+        <div class="dashboard-grid equal">
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div><p class="section-kicker">PRODUCT PROFIT</p><h2>유종별 이익률</h2></div>
+              <span class="unit-chip">매출이익률 / 영업이익률</span>
+            </div>
+            <div class="chart-area compact"><canvas id="productMarginChart"></canvas></div>
+          </article>
+          <article class="panel table-panel">
+            <div class="panel-heading">
+              <div><p class="section-kicker">PRODUCT DETAIL</p><h2>유종별 수익 상세</h2></div>
+              <span class="unit-chip">금액: 백만원</span>
+            </div>
+            <div class="table-scroll"><table id="productTable"></table></div>
+          </article>
         </div>
-      </div>
+        <article class="panel table-panel">
+          <div class="panel-heading">
+            <div><p class="section-kicker">MONTHLY DETAIL</p><h2>영업소 월간 실적</h2></div>
+            <span class="unit-chip">금액: 백만원</span>
+          </div>
+          <div class="table-scroll"><table id="monthlyTable"></table></div>
+        </article>
+      </section>
+    </main>
+
+    <footer>미수 관련 지표는 포함하지 않습니다. 수량 단위가 다른 DRUM과 EA는 분리하여 표시합니다.</footer>
+  </div>
+
+  <dialog id="importDialog" class="import-dialog">
+    <form method="dialog" class="dialog-head">
+      <div><p class="section-kicker">DATA UPDATE</p><h2>Excel 데이터 업데이트</h2></div>
+      <button class="icon-button" aria-label="닫기" value="cancel">×</button>
+    </form>
+    <p class="dialog-copy">기존 양식의 주간·월간 Excel을 선택하면 브라우저에서 변환합니다. 결과를 확인한 뒤 새 <code>data.json</code>을 내려받아 저장소에 교체하세요.</p>
+    <div class="upload-grid">
+      <label class="upload-card">주간 Excel<input id="weeklyFile" type="file" accept=".xlsx,.xls"></label>
+      <label class="upload-card">월간 Excel<input id="monthlyFile" type="file" accept=".xlsx,.xls"></label>
     </div>
-
-    <!-- 통합 차트 2×2 -->
-    <div class="unified-chart-grid">
-      <section class="panel">
-        <div class="panel-header">
-          <div><h2>매출 추이</h2><p id="u_salesTrendTitle">선택 법인 월별 매출 & 12M MA</p></div>
-          <span class="unit-badge">단위: 억원</span>
-        </div>
-        <div class="chart-wrap mid"><canvas id="u_salesTrendChart"></canvas></div>
-      </section>
-      <section class="panel">
-        <div class="panel-header">
-          <div><h2>채권 추이</h2><p id="u_bondTrendTitle">선택 법인 월별 채권 구성</p></div>
-          <span class="unit-badge">단위: 억원</span>
-        </div>
-        <div class="chart-wrap mid"><canvas id="u_bondTrendChart"></canvas></div>
-      </section>
+    <div id="importStatus" class="import-status">파일을 선택해 주세요.</div>
+    <div class="dialog-actions">
+      <button id="convertButton" class="button primary" type="button">변환 및 미리보기</button>
+      <button id="downloadButton" class="button ghost" type="button" disabled>data.json 다운로드</button>
     </div>
-    <div class="unified-chart-grid">
-      <section class="panel">
-        <div class="panel-header">
-          <div><h2>법인별 당월매출</h2><p id="u_salesBarTitle">그룹 내 법인 비교</p></div>
-          <span class="unit-badge">단위: 억원</span>
-        </div>
-        <div class="chart-wrap short"><canvas id="u_salesBarChart"></canvas></div>
-      </section>
-      <section class="panel">
-        <div class="panel-header">
-          <div><h2>법인별 채권 비교</h2><p id="u_bondBarTitle">그룹 내 법인 비교</p></div>
-          <span class="unit-badge">단위: 억원</span>
-        </div>
-        <div class="chart-wrap short"><canvas id="u_bondBarChart"></canvas></div>
-      </section>
-    </div>
+    <p class="dialog-footnote">월간 원본에 유종 열이 없으면 “유종 미분류”로 저장됩니다. 유종별 분리를 위해서는 README의 매핑 규칙을 참고하세요.</p>
+  </dialog>
 
-  </div><!-- /viewUnified -->
-
-  <!-- ════════════════════════════════════
-       매출 뷰
-  ════════════════════════════════════ -->
-  <div id="viewSales" class="hidden">
-    <section class="filter-panel">
-      <div class="filter-layout">
-        <div class="filter-left">
-          <div class="filter-header">
-            <div><h2>법인 선택</h2><p>상단 그룹 또는 하위 법인 버튼을 클릭하면 대시보드가 갱신됩니다.</p></div>
-          </div>
-          <div id="s_entityButtons" class="entity-buttons"></div>
-        </div>
-        <aside class="filter-summary">
-          <div class="filter-summary-header"><h3>선택 법인 정보</h3><p>현재 선택 상태</p></div>
-          <div class="detail-list compact-detail">
-            <div class="detail-item"><span>법인명</span><strong id="s_selName">-</strong></div>
-            <div class="detail-item"><span>구분</span><strong id="s_selGroup">-</strong></div>
-            <div class="detail-item"><span>기준월</span><strong id="s_selMonth">-</strong></div>
-          </div>
-        </aside>
-      </div>
-    </section>
-    <section class="kpi-grid">
-      <div class="kpi-card accent-blue">  <div class="kpi-label">당월매출</div>      <div class="kpi-value" id="s_kpiCur">-</div>   <div class="kpi-sub">기준월 매출</div></div>
-      <div class="kpi-card accent-sky">   <div class="kpi-label">전년동월대비</div>  <div class="kpi-value" id="s_kpiYoY">-</div>  <div class="kpi-sub">기준월 vs 전년동월</div></div>
-      <div class="kpi-card accent-teal">  <div class="kpi-label">누계</div>          <div class="kpi-value" id="s_kpiYTD">-</div>  <div class="kpi-sub">당해 1월~기준월</div></div>
-      <div class="kpi-card accent-violet"><div class="kpi-label">작년대비누계</div>  <div class="kpi-value" id="s_kpiPYTD">-</div> <div class="kpi-sub">전년 동일기간</div></div>
-      <div class="kpi-card accent-orange"><div class="kpi-label">작년 총매출</div>   <div class="kpi-value" id="s_kpiPTot">-</div> <div class="kpi-sub">전년 연간 합계</div></div>
-      <div class="kpi-card accent-green"> <div class="kpi-label">12개월 평균</div>   <div class="kpi-value" id="s_kpiMA12">-</div> <div class="kpi-sub">최근 12개월 평균</div></div>
-    </section>
-    <section class="main-grid">
-      <section class="panel">
-        <div class="panel-header">
-          <div><h2>월별매출 추이</h2><p id="s_trendTitle">선택 법인 기준</p></div>
-          <span class="unit-badge">단위: 억원</span>
-        </div>
-        <div class="chart-wrap tall"><canvas id="s_trendChart"></canvas></div>
-      </section>
-      <aside class="side-panels">
-        <section class="panel compact">
-          <div class="panel-header">
-            <div><h2>법인별 점유율</h2><p id="s_shareTitle">기준월 매출 비중</p></div>
-            <span class="unit-badge">단위: %</span>
-          </div>
-          <div class="chart-wrap compact-chart"><canvas id="s_shareChart"></canvas></div>
-        </section>
-        <section class="panel compact">
-          <div class="panel-header"><div><h2>최근 12개월 상세</h2><p>매출 & 12M_MA</p></div></div>
-          <div class="table-wrap">
-            <table><thead><tr><th>월</th><th>매출</th><th>12M_MA</th></tr></thead>
-            <tbody id="s_tableBody"></tbody></table>
-          </div>
-        </section>
-      </aside>
-    </section>
-    <section class="panel lower-panel">
-      <div class="panel-header">
-        <div><h2>법인별 당월매출 비교</h2><p id="s_barTitle">기준월 법인 비교</p></div>
-        <span class="unit-badge">단위: 억원</span>
-      </div>
-      <div class="chart-wrap short"><canvas id="s_barChart"></canvas></div>
-    </section>
-  </div><!-- /viewSales -->
-
-  <!-- ════════════════════════════════════
-       채권 뷰
-  ════════════════════════════════════ -->
-  <div id="viewBond" class="hidden">
-    <section class="filter-panel">
-      <div class="filter-layout">
-        <div class="filter-left">
-          <div class="filter-header">
-            <div><h2>법인 선택</h2><p>상단 그룹 또는 하위 법인 버튼을 클릭하면 대시보드가 갱신됩니다.</p></div>
-          </div>
-          <div id="b_entityButtons" class="entity-buttons"></div>
-        </div>
-        <aside class="filter-summary">
-          <div class="filter-summary-header"><h3>선택 법인 정보</h3><p>현재 선택 상태</p></div>
-          <div class="detail-list compact-detail">
-            <div class="detail-item"><span>법인명</span><strong id="b_selName">-</strong></div>
-            <div class="detail-item"><span>구분</span><strong id="b_selGroup">-</strong></div>
-            <div class="detail-item"><span>기준월</span><strong id="b_selMonth">-</strong></div>
-            <div class="detail-item"><span>채권합계</span><strong id="b_selTotal">-</strong></div>
-          </div>
-          <div id="b_noteBox" class="note-box hidden"></div>
-        </aside>
-      </div>
-    </section>
-    <section class="kpi-grid">
-      <div class="kpi-card accent-blue">  <div class="kpi-label">채권 합계</div>    <div class="kpi-value" id="b_kpiTot">-</div>  <div class="kpi-sub">당월 전체</div></div>
-      <div class="kpi-card accent-sky">   <div class="kpi-label">3개월이내(A)</div> <div class="kpi-value" id="b_kpi3m">-</div>   <div class="kpi-sub" id="b_kpi3mP">-</div></div>
-      <div class="kpi-card accent-teal">  <div class="kpi-label">4~6개월(B)</div>  <div class="kpi-value" id="b_kpi46m">-</div>  <div class="kpi-sub" id="b_kpi46mP">-</div></div>
-      <div class="kpi-card accent-orange"><div class="kpi-label">7~12개월(C)</div> <div class="kpi-value" id="b_kpi712m">-</div> <div class="kpi-sub" id="b_kpi712mP">-</div></div>
-      <div class="kpi-card accent-red">   <div class="kpi-label">1년초과(D)</div>  <div class="kpi-value" id="b_kpiOv1">-</div>  <div class="kpi-sub" id="b_kpiOv1P">-</div></div>
-      <div class="kpi-card accent-violet"><div class="kpi-label">전월대비</div>     <div class="kpi-value" id="b_kpiMoM">-</div>  <div class="kpi-sub" id="b_kpiMoMD">전월 대비 증감</div></div>
-    </section>
-    <section class="main-grid">
-      <section class="panel">
-        <div class="panel-header">
-          <div><h2>월별 채권 추이</h2><p id="b_trendTitle">선택 법인 기준</p></div>
-          <span class="unit-badge">단위: 억원</span>
-        </div>
-        <div class="chart-wrap tall"><canvas id="b_trendChart"></canvas></div>
-      </section>
-      <aside class="side-panels">
-        <section class="panel compact">
-          <div class="panel-header">
-            <div><h2>채권 등급별 비중</h2><p id="b_shareTitle">기준월 구성비</p></div>
-            <span class="unit-badge">단위: %</span>
-          </div>
-          <div class="chart-wrap compact-chart"><canvas id="b_shareChart"></canvas></div>
-        </section>
-        <section class="panel compact">
-          <div class="panel-header"><div><h2>월별 채권 상세</h2><p>최근 5개월</p></div></div>
-          <div class="table-wrap">
-            <table><thead><tr><th>월</th><th>합계</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
-            <tbody id="b_tableBody"></tbody></table>
-          </div>
-        </section>
-      </aside>
-    </section>
-    <section class="panel lower-panel">
-      <div class="panel-header">
-        <div><h2>법인별 채권 비교</h2><p id="b_barTitle">기준월 법인 비교</p></div>
-        <span class="unit-badge">단위: 억원</span>
-      </div>
-      <div class="chart-wrap short"><canvas id="b_barChart"></canvas></div>
-    </section>
-    <section class="panel lower-panel" style="margin-top:8px">
-      <div class="panel-header">
-        <div><h2>전월대비 증감</h2><p id="b_momTitle">법인별 전월대비</p></div>
-        <span class="unit-badge">단위: 억원</span>
-      </div>
-      <div class="chart-wrap short"><canvas id="b_momChart"></canvas></div>
-    </section>
-  </div><!-- /viewBond -->
-
-</div><!-- /app -->
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
