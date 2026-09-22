@@ -4,6 +4,11 @@ const PASSWORD_HASH = "f0dc8b78f55d34c142bbec9a6b0f590e86957e58ce52464a809eaafe3
 const DIVISIONS = ["동부", "중부", "서부"];
 const DIVISION_MAP = { "동부영업부": "동부", "중부영업부": "중부", "서부영업부": "서부" };
 const OFFICE_CODES = new Set(["A1210", "A1220", "A1230", "A1310", "A1320", "A1332", "A1340", "A1250"]);
+const OFFICE_META = {
+  A1210: { division: "동부", office: "부산" }, A1220: { division: "동부", office: "울산" }, A1230: { division: "동부", office: "포항" },
+  A1332: { division: "중부", office: "광주" }, A1340: { division: "중부", office: "천안" }, A1250: { division: "중부", office: "충주" },
+  A1320: { division: "서부", office: "수원" }, A1310: { division: "서부", office: "인천" }
+};
 const COLORS = ["#2d6cdf", "#36a9c9", "#16856c", "#e8892e", "#7568d6", "#d84a58", "#6b7d91", "#91a846"];
 
 const state = {
@@ -161,6 +166,14 @@ function filteredRecords() {
   );
 }
 
+function filteredSupplementalRecords(key) {
+  const periodData = (state.data[key] || []).find((item) => item.period === state.period);
+  return (periodData?.records || []).filter((row) =>
+    (state.division === "전체" || row.division === state.division) &&
+    (state.office === "전체" || row.office === state.office)
+  );
+}
+
 function render() {
   if (!state.data) return;
   $("#reportLabel").textContent = state.report === "weekly" ? "주간보고" : "월간보고";
@@ -217,12 +230,16 @@ function renderMonthly(rows) {
   ];
   renderKpis(cards);
 
-  if (state.division !== "전체" || state.office !== "전체") showNotice("월별 추이 차트는 원본에서 제공되는 BWC 전체 집계입니다. 영업소 선택은 나머지 월간 지표에 적용됩니다.");
-  if (rows.length && rows.every((row) => row.product === "유종 미분류")) showNotice("원본 Excel에 유종 열이 없어 유종별 영역은 현재 ‘유종 미분류’로 표시됩니다. data.json의 product 값을 채우면 자동 분리됩니다.");
+  const productRows = filteredSupplementalRecords("productProfit");
+  const receivableRows = filteredSupplementalRecords("receivables");
+  if (state.division !== "전체" || state.office !== "전체") showNotice("월별 추이 차트는 BWC 전체 집계입니다. 영업소 선택은 나머지 월간 지표에 적용됩니다.");
+  if (!productRows.length) showNotice("선택한 월의 유종별 이익분석 자료가 없습니다. Excel 업데이트에서 같은 월의 유종별 파일을 추가해 주세요.");
+  if (!receivableRows.length) showNotice("선택한 월의 영업소별 미수 자료가 없습니다. 월간 Excel의 ‘영업소_미수’ 시트를 확인해 주세요.");
 
   renderMonthlyTrendChart();
   renderOfficeMarginChart(rows);
-  renderProductViews(rows);
+  renderReceivables(receivableRows);
+  renderProductViews(productRows);
   renderMonthlyTable(rows);
 }
 
@@ -331,6 +348,24 @@ function renderOfficeMarginChart(rows) {
   });
 }
 
+function renderReceivables(rows) {
+  const groups = aggregate(rows, ["division", "office"], ["totalReceivable", "currentReceivable", "under3Months", "over3Months"])
+    .sort((a, b) => b.totalReceivable - a.totalReceivable);
+  replaceChart("receivableChart", {
+    type: "bar",
+    data: {
+      labels: groups.map((row) => row.office),
+      datasets: [
+        { label: "총 미수", data: groups.map((row) => row.totalReceivable / 1_000_000), backgroundColor: "#2d6cdf", borderRadius: 5 },
+        { label: "3개월 이상", data: groups.map((row) => row.over3Months / 1_000_000), backgroundColor: "#e8892e", borderRadius: 5 }
+      ]
+    },
+    options: { ...baseChartOptions(), scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: "#edf1f6" }, ticks: { color: "#6f7d91" } } } }
+  });
+  const body = groups.map((row) => `<tr><td>${escapeHtml(row.division)}</td><td>${escapeHtml(row.office)}</td><td>${moneyMillion(row.totalReceivable, 1)}</td><td>${moneyMillion(row.currentReceivable, 1)}</td><td>${moneyMillion(row.under3Months, 1)}</td><td>${moneyMillion(row.over3Months, 1)}</td><td class="${safeRate(row.over3Months, row.totalReceivable) > .2 ? "rate-negative" : "rate-positive"}">${percent(safeRate(row.over3Months, row.totalReceivable))}</td></tr>`).join("");
+  $("#receivableTable").innerHTML = `<thead><tr><th>본부</th><th>영업소</th><th>총 미수</th><th>당월 미수</th><th>2개월 이하</th><th>3개월 이상</th><th>장기미수 비율</th></tr></thead><tbody>${body || emptyRow(7)}</tbody>`;
+}
+
 function renderProductViews(rows) {
   const products = aggregate(rows, ["product"], ["quantityDrum", "quantityEa", "revenue", "operatingProfit"]);
   products.forEach((row) => { row.operatingMargin = safeRate(row.operatingProfit, row.revenue); });
@@ -372,12 +407,15 @@ async function readWorkbook(file) {
 async function convertExcelFiles() {
   const weeklyFile = $("#weeklyFile").files[0];
   const monthlyFile = $("#monthlyFile").files[0];
-  if (!weeklyFile && !monthlyFile) return setImportStatus("주간 또는 월간 Excel을 선택해 주세요.", "error");
+  const productFile = $("#productFile").files[0];
+  if (!weeklyFile && !monthlyFile && !productFile) return setImportStatus("주간, 월간 또는 유종별 이익분석 Excel을 선택해 주세요.", "error");
   try {
     setImportStatus("Excel 구조를 확인하고 있습니다.");
     const next = JSON.parse(JSON.stringify(state.data));
     let importedWeeklyCount = 0;
     let importedMonthlyCount = 0;
+    let importedReceivableCount = 0;
+    let importedProductCount = 0;
     if (weeklyFile) {
       const weeklyPeriod = parseWeeklyWorkbook(await readWorkbook(weeklyFile));
       next.weekly = mergePeriods(next.weekly || [], [weeklyPeriod]);
@@ -387,7 +425,14 @@ async function convertExcelFiles() {
       const parsed = parseMonthlyWorkbook(await readWorkbook(monthlyFile));
       next.monthly = mergePeriods(next.monthly || [], parsed.monthlyPeriods);
       next.monthlyTrend = mergePeriods(next.monthlyTrend || [], parsed.trends);
+      next.receivables = mergePeriods(next.receivables || [], parsed.receivables);
       importedMonthlyCount = parsed.monthlyPeriods.length;
+      importedReceivableCount = parsed.receivables.length;
+    }
+    if (productFile) {
+      const productPeriod = parseProductWorkbook(await readWorkbook(productFile), productFile.name, next);
+      next.productProfit = mergePeriods(next.productProfit || [], [productPeriod]);
+      importedProductCount = 1;
     }
     next.organization = buildOrganization(next);
     next.meta.updatedAt = new Date().toISOString().slice(0, 10);
@@ -398,7 +443,12 @@ async function convertExcelFiles() {
     initializeFilters();
     render();
     $("#downloadButton").disabled = false;
-    const summary = [importedWeeklyCount ? `주간 ${importedWeeklyCount}개` : "", importedMonthlyCount ? `월간 ${importedMonthlyCount}개월` : ""].filter(Boolean).join(", ");
+    const summary = [
+      importedWeeklyCount ? `주간 ${importedWeeklyCount}개` : "",
+      importedMonthlyCount ? `월간 ${importedMonthlyCount}개월` : "",
+      importedReceivableCount ? `미수 ${importedReceivableCount}개월` : "",
+      importedProductCount ? `유종별 ${importedProductCount}개월` : ""
+    ].filter(Boolean).join(", ");
     setImportStatus(`${summary} 데이터를 기존 이력과 병합했습니다. 화면을 확인한 뒤 data.json을 내려받으세요.`, "success");
   } catch (error) {
     console.error(error);
@@ -449,7 +499,84 @@ function parseMonthlyWorkbook(workbook) {
     totals.operatingMargin = safeRate(totals.operatingProfit, totals.revenue);
     return roundRecord(totals);
   });
-  return { monthlyPeriods, trends };
+  const receivables = parseReceivablePeriods(workbook);
+  return { monthlyPeriods, trends, receivables };
+}
+
+function parseReceivablePeriods(workbook) {
+  const sheet = workbook.Sheets["영업소_미수"];
+  if (!sheet) return [];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
+  const monthHeaderIndex = rows.findIndex((row, index) => index > 40 && row[3] === "1월" && row[14] === "12월");
+  if (monthHeaderIndex < 0) return [];
+  const yearText = String(rows[monthHeaderIndex - 1]?.find((value) => /20\d{2}년/.test(String(value || ""))) || "");
+  const year = yearText.match(/20\d{2}/)?.[0] || String(new Date().getFullYear());
+  const periods = new Map();
+  let division = null;
+  let office = null;
+  rows.slice(monthHeaderIndex + 1).forEach((row) => {
+    if (row[0]) {
+      division = DIVISION_MAP[String(row[0]).trim()] || null;
+      if (!division) office = null;
+    }
+    if (row[1]) {
+      const candidate = String(row[1]).replace("영업소", "").trim();
+      office = Object.values(OFFICE_META).some((item) => item.office === candidate) ? candidate : null;
+    }
+    const metric = String(row[2] || "").trim();
+    const field = { "소계": "totalReceivable", "당월 미수": "currentReceivable", "2개월 이하": "under3Months", "3개월 이상": "over3Months" }[metric];
+    if (!division || !office || !field) return;
+    const officeEntry = Object.entries(OFFICE_META).find(([, item]) => item.office === office && item.division === division);
+    if (!officeEntry) return;
+    for (let month = 1; month <= 12; month += 1) {
+      const period = `${year}-${String(month).padStart(2, "0")}`;
+      if (!periods.has(period)) periods.set(period, new Map());
+      const map = periods.get(period);
+      if (!map.has(office)) map.set(office, { division, office, officeCode: officeEntry[0], totalReceivable: 0, currentReceivable: 0, under3Months: 0, over3Months: 0 });
+      map.get(office)[field] = numeric(row[month + 2]);
+    }
+  });
+  return [...periods.entries()].map(([period, records]) => ({ period, records: [...records.values()].map(roundRecord) }))
+    .filter((item) => item.records.some((row) => row.totalReceivable || row.currentReceivable || row.under3Months || row.over3Months))
+    .sort((a, b) => a.period.localeCompare(b.period));
+}
+
+function parseProductWorkbook(workbook, fileName, data) {
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  if (!sheet) throw new Error("유종별 Excel에서 데이터 시트를 찾지 못했습니다.");
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
+  const headers = rows[1] || [];
+  const productIndex = headers.indexOf("유종대분류");
+  const officeCodeIndex = headers.indexOf("부서코드");
+  const officeIndex = headers.indexOf("단위부서명");
+  const unitIndex = headers.indexOf("포장단위");
+  const quantityIndex = headers.indexOf("실적수량");
+  const revenueIndex = headers.indexOf("실적금액");
+  const operatingProfitIndex = headers.indexOf("실적영업이익");
+  if ([productIndex, officeCodeIndex, officeIndex, unitIndex, quantityIndex, revenueIndex, operatingProfitIndex].some((index) => index < 0)) throw new Error("유종별 Excel의 열 구성이 기존 양식과 다릅니다.");
+  const groups = new Map();
+  rows.slice(2).forEach((row) => {
+    const officeCode = String(row[officeCodeIndex] || "").trim();
+    const meta = OFFICE_META[officeCode];
+    const unit = String(row[unitIndex] || "").trim();
+    if (!meta || !["DRUM", "EA"].includes(unit)) return;
+    const product = String(row[productIndex] || "유종 미분류").trim() || "유종 미분류";
+    const id = `${officeCode}||${product}`;
+    if (!groups.has(id)) groups.set(id, { division: meta.division, office: meta.office, officeCode, product, quantityDrum: 0, quantityEa: 0, revenue: 0, operatingProfit: 0 });
+    const target = groups.get(id);
+    target[unit === "DRUM" ? "quantityDrum" : "quantityEa"] += numeric(row[quantityIndex]);
+    target.revenue += numeric(row[revenueIndex]);
+    target.operatingProfit += numeric(row[operatingProfitIndex]);
+  });
+  const records = [...groups.values()].map(roundRecord).filter((row) => row.quantityDrum || row.quantityEa || row.revenue || row.operatingProfit);
+  if (!records.length) throw new Error("유종별 Excel에서 8개 영업소의 실적을 읽지 못했습니다.");
+  const explicitPeriod = String(fileName).match(/(20\d{2})\D*(\d{1,2})월/);
+  const monthOnly = String(fileName).match(/(\d{1,2})월/);
+  const latestMonthly = [...(data.monthly || [])].sort((a, b) => b.period.localeCompare(a.period))[0]?.period;
+  const year = explicitPeriod?.[1] || latestMonthly?.slice(0, 4) || String(new Date().getFullYear());
+  const month = Number(explicitPeriod?.[2] || monthOnly?.[1]);
+  if (!month || month > 12) throw new Error("유종별 Excel 파일명에서 ‘8월’과 같은 기준월을 찾지 못했습니다.");
+  return { period: `${year}-${String(month).padStart(2, "0")}`, records };
 }
 
 function parseMonthlyDetailSheet(workbook) {

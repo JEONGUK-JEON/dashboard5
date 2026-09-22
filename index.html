@@ -124,6 +124,22 @@
         <div class="dashboard-grid equal">
           <article class="panel chart-panel">
             <div class="panel-heading">
+              <div><p class="section-kicker">RECEIVABLES</p><h2>영업소별 미수 비교</h2></div>
+              <span class="unit-chip">백만원</span>
+            </div>
+            <div class="chart-area compact"><canvas id="receivableChart"></canvas></div>
+          </article>
+          <article class="panel table-panel">
+            <div class="panel-heading">
+              <div><p class="section-kicker">RECEIVABLE DETAIL</p><h2>영업소별 미수 상세</h2></div>
+              <span class="unit-chip">3개월 이상 장기미수</span>
+            </div>
+            <div class="table-scroll"><table id="receivableTable"></table></div>
+          </article>
+        </div>
+        <div class="dashboard-grid equal">
+          <article class="panel chart-panel">
+            <div class="panel-heading">
               <div><p class="section-kicker">PRODUCT PROFIT</p><h2>유종별 이익률</h2></div>
               <span class="unit-chip">영업이익률</span>
             </div>
@@ -147,7 +163,7 @@
       </section>
     </main>
 
-    <footer>미수 관련 지표는 포함하지 않습니다. 수량 단위가 다른 DRUM과 EA는 분리하여 표시합니다.</footer>
+    <footer>미수 자료는 월간보고에서만 표시합니다. 수량 단위가 다른 DRUM과 EA는 분리하여 표시합니다.</footer>
   </div>
 
   <dialog id="importDialog" class="import-dialog">
@@ -155,17 +171,18 @@
       <div><p class="section-kicker">DATA UPDATE</p><h2>Excel 데이터 업데이트</h2></div>
       <button class="icon-button" aria-label="닫기" value="cancel">×</button>
     </form>
-    <p class="dialog-copy">기존 양식의 주간·월간 Excel을 선택하면 브라우저에서 변환합니다. 결과를 확인한 뒤 새 <code>data.json</code>을 내려받아 저장소에 교체하세요.</p>
+    <p class="dialog-copy">주간·월간·유종별 이익분석 Excel을 각각 선택하면 브라우저에서 하나의 데이터 파일로 변환합니다. 결과를 확인한 뒤 새 <code>data.json</code>을 내려받아 저장소에 교체하세요.</p>
     <div class="upload-grid">
       <label class="upload-card">주간 Excel<input id="weeklyFile" type="file" accept=".xlsx,.xls"></label>
       <label class="upload-card">월간 Excel<input id="monthlyFile" type="file" accept=".xlsx,.xls"></label>
+      <label class="upload-card">유종별 이익분석 Excel<input id="productFile" type="file" accept=".xlsx,.xls"></label>
     </div>
     <div id="importStatus" class="import-status">파일을 선택해 주세요.</div>
     <div class="dialog-actions">
       <button id="convertButton" class="button primary" type="button">변환 및 미리보기</button>
       <button id="downloadButton" class="button ghost" type="button" disabled>data.json 다운로드</button>
     </div>
-    <p class="dialog-footnote">월간 원본에 유종 열이 없으면 “유종 미분류”로 저장됩니다. 유종별 분리를 위해서는 README의 매핑 규칙을 참고하세요.</p>
+    <p class="dialog-footnote">월간 Excel에서는 영업소 실적과 미수를, 유종별 Excel에서는 유종대분류별 수량·매출·영업이익을 읽습니다. 세 파일 중 필요한 파일만 선택해도 기존 이력과 병합됩니다.</p>
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
