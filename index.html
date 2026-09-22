@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260922-2">
 </head>
 <body>
   <section id="loginView" class="login-shell" aria-label="로그인">
@@ -116,7 +116,7 @@
           <article class="panel chart-panel">
             <div class="panel-heading">
               <div><p class="section-kicker">PROFITABILITY</p><h2>영업소별 이익률</h2></div>
-              <span class="unit-chip">영업이익률</span>
+              <span id="productPeriodBadge" class="unit-chip">영업이익률</span>
             </div>
             <div class="chart-area compact"><canvas id="officeMarginChart"></canvas></div>
           </article>
@@ -148,7 +148,7 @@
           <article class="panel table-panel">
             <div class="panel-heading">
               <div><p class="section-kicker">PRODUCT DETAIL</p><h2>유종별 수익 상세</h2></div>
-              <span class="unit-chip">금액: 백만원</span>
+              <span id="productDetailBadge" class="unit-chip">금액: 백만원</span>
             </div>
             <div class="table-scroll"><table id="productTable"></table></div>
           </article>
@@ -187,6 +187,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="script.js"></script>
+  <script src="script.js?v=20260922-3"></script>
 </body>
 </html>

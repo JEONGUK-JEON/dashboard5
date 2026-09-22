@@ -84,7 +84,7 @@ async function showApp() {
   $("#app").classList.remove("is-hidden");
   if (!state.data) {
     try {
-      const response = await fetch("data.json", { cache: "no-store" });
+      const response = await fetch(`data.json?ts=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) throw new Error(`data.json 로드 실패 (${response.status})`);
       state.data = await response.json();
       validateData(state.data);
@@ -166,12 +166,19 @@ function filteredRecords() {
   );
 }
 
-function filteredSupplementalRecords(key) {
-  const periodData = (state.data[key] || []).find((item) => item.period === state.period);
-  return (periodData?.records || []).filter((row) =>
+function filteredSupplementalPeriod(key, useLatestFallback = false) {
+  const periods = state.data[key] || [];
+  let periodData = periods.find((item) => item.period === state.period);
+  if (!periodData && useLatestFallback) periodData = [...periods].sort((a, b) => b.period.localeCompare(a.period))[0];
+  const records = (periodData?.records || []).filter((row) =>
     (state.division === "전체" || row.division === state.division) &&
     (state.office === "전체" || row.office === state.office)
   );
+  return { period: periodData?.period || null, records };
+}
+
+function filteredSupplementalRecords(key) {
+  return filteredSupplementalPeriod(key).records;
 }
 
 function render() {
@@ -230,10 +237,15 @@ function renderMonthly(rows) {
   ];
   renderKpis(cards);
 
-  const productRows = filteredSupplementalRecords("productProfit");
+  const productData = filteredSupplementalPeriod("productProfit", true);
+  const productRows = productData.records;
   const receivableRows = filteredSupplementalRecords("receivables");
+  const productPeriodLabel = productData.period ? `${Number(productData.period.slice(5))}월 자료` : "영업이익률";
+  $("#productPeriodBadge").textContent = productPeriodLabel;
+  $("#productDetailBadge").textContent = productData.period ? `금액: 백만원 · ${productPeriodLabel}` : "금액: 백만원";
   if (state.division !== "전체" || state.office !== "전체") showNotice("월별 추이 차트는 BWC 전체 집계입니다. 영업소 선택은 나머지 월간 지표에 적용됩니다.");
   if (!productRows.length) showNotice("선택한 월의 유종별 이익분석 자료가 없습니다. Excel 업데이트에서 같은 월의 유종별 파일을 추가해 주세요.");
+  else if (productData.period !== state.period) showNotice(`유종별 이익률은 별도 업로드한 ${productData.period.slice(0, 4)}년 ${Number(productData.period.slice(5))}월 최신 자료입니다.`);
   if (!receivableRows.length) showNotice("선택한 월의 영업소별 미수 자료가 없습니다. 월간 Excel의 ‘영업소_미수’ 시트를 확인해 주세요.");
 
   renderMonthlyTrendChart();
@@ -367,7 +379,8 @@ function renderReceivables(rows) {
 }
 
 function renderProductViews(rows) {
-  const products = aggregate(rows, ["product"], ["quantityDrum", "quantityEa", "revenue", "operatingProfit"]);
+  const normalizedRows = rows.map((row) => ({ ...row, product: normalizeProductName(row.product) }));
+  const products = aggregate(normalizedRows, ["product"], ["quantityDrum", "quantityEa", "revenue", "operatingProfit"]);
   products.forEach((row) => { row.operatingMargin = safeRate(row.operatingProfit, row.revenue); });
   replaceChart("productMarginChart", {
     type: "bar",
@@ -560,7 +573,7 @@ function parseProductWorkbook(workbook, fileName, data) {
     const meta = OFFICE_META[officeCode];
     const unit = String(row[unitIndex] || "").trim();
     if (!meta || !["DRUM", "EA"].includes(unit)) return;
-    const product = String(row[productIndex] || "유종 미분류").trim() || "유종 미분류";
+    const product = normalizeProductName(row[productIndex]);
     const id = `${officeCode}||${product}`;
     if (!groups.has(id)) groups.set(id, { division: meta.division, office: meta.office, officeCode, product, quantityDrum: 0, quantityEa: 0, revenue: 0, operatingProfit: 0 });
     const target = groups.get(id);
@@ -577,6 +590,11 @@ function parseProductWorkbook(workbook, fileName, data) {
   const month = Number(explicitPeriod?.[2] || monthOnly?.[1]);
   if (!month || month > 12) throw new Error("유종별 Excel 파일명에서 ‘8월’과 같은 기준월을 찾지 못했습니다.");
   return { period: `${year}-${String(month).padStart(2, "0")}`, records };
+}
+
+function normalizeProductName(value) {
+  const cleaned = String(value || "유종 미분류").replace(/\s*\(\s*상\s*\)\s*$/u, "").trim().replace(/\s+/gu, " ");
+  return cleaned === "산업용윤활유" ? "산업용 윤활유" : cleaned;
 }
 
 function parseMonthlyDetailSheet(workbook) {

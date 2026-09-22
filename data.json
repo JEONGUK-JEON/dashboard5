@@ -9,7 +9,8 @@
     "productSource": "8월 유종별 이익분석.xlsx",
     "notes": [
       "월간 영업소별 미수 합계는 영업소_미수 시트에서 읽습니다.",
-      "유종별 영업이익은 별도 유종별 이익분석 Excel에서 읽습니다."
+      "유종별 영업이익은 별도 유종별 이익분석 Excel에서 읽습니다.",
+      "유종대분류 이름 끝의 (상)은 제거하고 동일 대분류에 합산합니다."
     ]
   },
   "organization": [
@@ -2434,150 +2435,80 @@
           "office": "광주",
           "officeCode": "A1332",
           "product": "기타유제",
-          "quantityDrum": 0.8,
-          "quantityEa": 0,
-          "revenue": 493600,
-          "operatingProfit": 112573
+          "quantityDrum": 96,
+          "quantityEa": 5760,
+          "revenue": 84613400,
+          "operatingProfit": -5743272
         },
         {
           "division": "동부",
           "office": "부산",
           "officeCode": "A1210",
           "product": "기타유제",
-          "quantityDrum": 4.9,
-          "quantityEa": 0,
-          "revenue": 9145200,
-          "operatingProfit": 3475080
+          "quantityDrum": 375.39,
+          "quantityEa": 1317,
+          "revenue": 261142831,
+          "operatingProfit": 7783439
         },
         {
           "division": "서부",
           "office": "수원",
           "officeCode": "A1320",
           "product": "기타유제",
-          "quantityDrum": 4.74,
-          "quantityEa": 0,
-          "revenue": 9188500,
-          "operatingProfit": 1947304
+          "quantityDrum": 98.03999999999999,
+          "quantityEa": 74,
+          "revenue": 56538500,
+          "operatingProfit": 3298031
         },
         {
           "division": "동부",
           "office": "울산",
           "officeCode": "A1220",
           "product": "기타유제",
-          "quantityDrum": 6.5,
-          "quantityEa": 0,
-          "revenue": 13665900,
-          "operatingProfit": 603614
+          "quantityDrum": 95.8,
+          "quantityEa": 1636,
+          "revenue": 90526700,
+          "operatingProfit": 5232919
         },
         {
           "division": "서부",
           "office": "인천",
           "officeCode": "A1310",
           "product": "기타유제",
-          "quantityDrum": 4.9,
-          "quantityEa": 0,
-          "revenue": 6919000,
-          "operatingProfit": -553821
+          "quantityDrum": 45.6,
+          "quantityEa": 160,
+          "revenue": 41400900,
+          "operatingProfit": 2275622
         },
         {
           "division": "중부",
           "office": "천안",
           "officeCode": "A1340",
           "product": "기타유제",
-          "quantityDrum": 12,
-          "quantityEa": 0,
-          "revenue": 19694400,
-          "operatingProfit": 6727399
+          "quantityDrum": 90.2,
+          "quantityEa": 2188,
+          "revenue": 110697000,
+          "operatingProfit": 9646874
         },
         {
           "division": "동부",
           "office": "포항",
           "officeCode": "A1230",
           "product": "기타유제",
-          "quantityDrum": 18.1,
+          "quantityDrum": 36.2,
           "quantityEa": 0,
-          "revenue": 16883480,
-          "operatingProfit": 4203821
-        },
-        {
-          "division": "중부",
-          "office": "광주",
-          "officeCode": "A1332",
-          "product": "기타유제(상)",
-          "quantityDrum": 95.2,
-          "quantityEa": 5760,
-          "revenue": 84119800,
-          "operatingProfit": -5855845
-        },
-        {
-          "division": "동부",
-          "office": "부산",
-          "officeCode": "A1210",
-          "product": "기타유제(상)",
-          "quantityDrum": 370.49,
-          "quantityEa": 1317,
-          "revenue": 251997631,
-          "operatingProfit": 4308359
-        },
-        {
-          "division": "서부",
-          "office": "수원",
-          "officeCode": "A1320",
-          "product": "기타유제(상)",
-          "quantityDrum": 93.3,
-          "quantityEa": 74,
-          "revenue": 47350000,
-          "operatingProfit": 1350727
-        },
-        {
-          "division": "동부",
-          "office": "울산",
-          "officeCode": "A1220",
-          "product": "기타유제(상)",
-          "quantityDrum": 89.3,
-          "quantityEa": 1636,
-          "revenue": 76860800,
-          "operatingProfit": 4629305
-        },
-        {
-          "division": "서부",
-          "office": "인천",
-          "officeCode": "A1310",
-          "product": "기타유제(상)",
-          "quantityDrum": 40.7,
-          "quantityEa": 160,
-          "revenue": 34481900,
-          "operatingProfit": 2829443
-        },
-        {
-          "division": "중부",
-          "office": "천안",
-          "officeCode": "A1340",
-          "product": "기타유제(상)",
-          "quantityDrum": 78.2,
-          "quantityEa": 2188,
-          "revenue": 91002600,
-          "operatingProfit": 2919475
+          "revenue": 34055980,
+          "operatingProfit": 5823921
         },
         {
           "division": "중부",
           "office": "충주",
           "officeCode": "A1250",
-          "product": "기타유제(상)",
+          "product": "기타유제",
           "quantityDrum": 0,
           "quantityEa": 16641,
           "revenue": 8610000,
           "operatingProfit": -2719618
-        },
-        {
-          "division": "동부",
-          "office": "포항",
-          "officeCode": "A1230",
-          "product": "기타유제(상)",
-          "quantityDrum": 18.1,
-          "quantityEa": 0,
-          "revenue": 17172500,
-          "operatingProfit": 1620100
         },
         {
           "division": "중부",
@@ -2624,10 +2555,10 @@
           "office": "인천",
           "officeCode": "A1310",
           "product": "방청왁스/코팅제",
-          "quantityDrum": 20,
+          "quantityDrum": 21,
           "quantityEa": 0,
-          "revenue": 11200000,
-          "operatingProfit": -224507
+          "revenue": 12722000,
+          "operatingProfit": -17702
         },
         {
           "division": "중부",
@@ -2640,20 +2571,10 @@
           "operatingProfit": 336562
         },
         {
-          "division": "서부",
-          "office": "인천",
-          "officeCode": "A1310",
-          "product": "방청왁스/코팅제(상)",
-          "quantityDrum": 1,
-          "quantityEa": 0,
-          "revenue": 1522000,
-          "operatingProfit": 206805
-        },
-        {
           "division": "동부",
           "office": "포항",
           "officeCode": "A1230",
-          "product": "방청왁스/코팅제(상)",
+          "product": "방청왁스/코팅제",
           "quantityDrum": 4,
           "quantityEa": 0,
           "revenue": 4200000,
@@ -2665,19 +2586,19 @@
           "officeCode": "A1332",
           "product": "방청유",
           "quantityDrum": 43.4,
-          "quantityEa": 0,
-          "revenue": 37685200,
-          "operatingProfit": 8596861
+          "quantityEa": 245,
+          "revenue": 39107685,
+          "operatingProfit": 8701323
         },
         {
           "division": "동부",
           "office": "부산",
           "officeCode": "A1210",
           "product": "방청유",
-          "quantityDrum": 539.2,
-          "quantityEa": 0,
-          "revenue": 437028355,
-          "operatingProfit": 86453375
+          "quantityDrum": 539.3000000000001,
+          "quantityEa": 51,
+          "revenue": 437372055,
+          "operatingProfit": 86493243
         },
         {
           "division": "서부",
@@ -2685,9 +2606,9 @@
           "officeCode": "A1320",
           "product": "방청유",
           "quantityDrum": 155.9,
-          "quantityEa": 0,
-          "revenue": 145038720,
-          "operatingProfit": 31684056
+          "quantityEa": 288,
+          "revenue": 146602992,
+          "operatingProfit": 31816101
         },
         {
           "division": "동부",
@@ -2695,9 +2616,9 @@
           "officeCode": "A1220",
           "product": "방청유",
           "quantityDrum": 86.9,
-          "quantityEa": 0,
-          "revenue": 79008100,
-          "operatingProfit": 20548727
+          "quantityEa": 115,
+          "revenue": 79606559,
+          "operatingProfit": 20577374
         },
         {
           "division": "서부",
@@ -2714,10 +2635,10 @@
           "office": "천안",
           "officeCode": "A1340",
           "product": "방청유",
-          "quantityDrum": 136.9,
-          "quantityEa": 0,
-          "revenue": 128384400,
-          "operatingProfit": 32721990
+          "quantityDrum": 137.9,
+          "quantityEa": 379,
+          "revenue": 131205939,
+          "operatingProfit": 32969891
         },
         {
           "division": "중부",
@@ -2734,70 +2655,10 @@
           "office": "포항",
           "officeCode": "A1230",
           "product": "방청유",
-          "quantityDrum": 360.7,
+          "quantityDrum": 361.09999999999997,
           "quantityEa": 0,
-          "revenue": 289996140,
-          "operatingProfit": 46815312
-        },
-        {
-          "division": "중부",
-          "office": "광주",
-          "officeCode": "A1332",
-          "product": "방청유(상)",
-          "quantityDrum": 0,
-          "quantityEa": 245,
-          "revenue": 1422485,
-          "operatingProfit": 104462
-        },
-        {
-          "division": "동부",
-          "office": "부산",
-          "officeCode": "A1210",
-          "product": "방청유(상)",
-          "quantityDrum": 0.1,
-          "quantityEa": 51,
-          "revenue": 343700,
-          "operatingProfit": 39868
-        },
-        {
-          "division": "서부",
-          "office": "수원",
-          "officeCode": "A1320",
-          "product": "방청유(상)",
-          "quantityDrum": 0,
-          "quantityEa": 288,
-          "revenue": 1564272,
-          "operatingProfit": 132045
-        },
-        {
-          "division": "동부",
-          "office": "울산",
-          "officeCode": "A1220",
-          "product": "방청유(상)",
-          "quantityDrum": 0,
-          "quantityEa": 115,
-          "revenue": 598459,
-          "operatingProfit": 28647
-        },
-        {
-          "division": "중부",
-          "office": "천안",
-          "officeCode": "A1340",
-          "product": "방청유(상)",
-          "quantityDrum": 1,
-          "quantityEa": 379,
-          "revenue": 2821539,
-          "operatingProfit": 247901
-        },
-        {
-          "division": "동부",
-          "office": "포항",
-          "officeCode": "A1230",
-          "product": "방청유(상)",
-          "quantityDrum": 0.4,
-          "quantityEa": 0,
-          "revenue": 492500,
-          "operatingProfit": 120097
+          "revenue": 290488640,
+          "operatingProfit": 46935409
         },
         {
           "division": "중부",
@@ -2824,10 +2685,10 @@
           "office": "수원",
           "officeCode": "A1320",
           "product": "비수용성 소성유",
-          "quantityDrum": 88.8,
+          "quantityDrum": 89,
           "quantityEa": 0,
-          "revenue": 76603400,
-          "operatingProfit": 9059614
+          "revenue": 76965400,
+          "operatingProfit": 9129150
         },
         {
           "division": "동부",
@@ -2880,16 +2741,6 @@
           "operatingProfit": 8442197
         },
         {
-          "division": "서부",
-          "office": "수원",
-          "officeCode": "A1320",
-          "product": "비수용성 소성유(상)",
-          "quantityDrum": 0.2,
-          "quantityEa": 0,
-          "revenue": 362000,
-          "operatingProfit": 69536
-        },
-        {
           "division": "중부",
           "office": "광주",
           "officeCode": "A1332",
@@ -2904,10 +2755,10 @@
           "office": "부산",
           "officeCode": "A1210",
           "product": "비수용성 절삭유",
-          "quantityDrum": 239.12,
+          "quantityDrum": 239.42000000000002,
           "quantityEa": 0,
-          "revenue": 169839866,
-          "operatingProfit": 20954637
+          "revenue": 170117066,
+          "operatingProfit": 21042058
         },
         {
           "division": "서부",
@@ -2934,10 +2785,10 @@
           "office": "인천",
           "officeCode": "A1310",
           "product": "비수용성 절삭유",
-          "quantityDrum": 265,
+          "quantityDrum": 269,
           "quantityEa": 24,
-          "revenue": 206970000,
-          "operatingProfit": 13887369
+          "revenue": 210390000,
+          "operatingProfit": 14577854
         },
         {
           "division": "중부",
@@ -2958,26 +2809,6 @@
           "quantityEa": 0,
           "revenue": 103393810,
           "operatingProfit": 14207346
-        },
-        {
-          "division": "동부",
-          "office": "부산",
-          "officeCode": "A1210",
-          "product": "비수용성 절삭유(상)",
-          "quantityDrum": 0.3,
-          "quantityEa": 0,
-          "revenue": 277200,
-          "operatingProfit": 87421
-        },
-        {
-          "division": "서부",
-          "office": "인천",
-          "officeCode": "A1310",
-          "product": "비수용성 절삭유(상)",
-          "quantityDrum": 4,
-          "quantityEa": 0,
-          "revenue": 3420000,
-          "operatingProfit": 690485
         },
         {
           "division": "중부",
@@ -3004,10 +2835,10 @@
           "office": "수원",
           "officeCode": "A1320",
           "product": "산업용 윤활유",
-          "quantityDrum": 308.6,
+          "quantityDrum": 309.6,
           "quantityEa": 0,
-          "revenue": 195072570,
-          "operatingProfit": -10848807
+          "revenue": 195912570,
+          "operatingProfit": -10566241
         },
         {
           "division": "동부",
@@ -3024,10 +2855,10 @@
           "office": "인천",
           "officeCode": "A1310",
           "product": "산업용 윤활유",
-          "quantityDrum": 395,
+          "quantityDrum": 395.6,
           "quantityEa": 0,
-          "revenue": 240923600,
-          "operatingProfit": -24191244
+          "revenue": 241337600,
+          "operatingProfit": -24104354
         },
         {
           "division": "중부",
@@ -3054,40 +2885,10 @@
           "office": "포항",
           "officeCode": "A1230",
           "product": "산업용 윤활유",
-          "quantityDrum": 83.2,
+          "quantityDrum": 84.2,
           "quantityEa": 0,
-          "revenue": 55182050,
-          "operatingProfit": 1168620
-        },
-        {
-          "division": "서부",
-          "office": "수원",
-          "officeCode": "A1320",
-          "product": "산업용윤활유(상)",
-          "quantityDrum": 1,
-          "quantityEa": 0,
-          "revenue": 840000,
-          "operatingProfit": 282566
-        },
-        {
-          "division": "서부",
-          "office": "인천",
-          "officeCode": "A1310",
-          "product": "산업용윤활유(상)",
-          "quantityDrum": 0.6,
-          "quantityEa": 0,
-          "revenue": 414000,
-          "operatingProfit": 86890
-        },
-        {
-          "division": "동부",
-          "office": "포항",
-          "officeCode": "A1230",
-          "product": "산업용윤활유(상)",
-          "quantityDrum": 1,
-          "quantityEa": 0,
-          "revenue": 663400,
-          "operatingProfit": 135318
+          "revenue": 55845450,
+          "operatingProfit": 1303938
         },
         {
           "division": "중부",
@@ -3104,30 +2905,30 @@
           "office": "부산",
           "officeCode": "A1210",
           "product": "세정유",
-          "quantityDrum": 141.9,
+          "quantityDrum": 266.4,
           "quantityEa": 0,
-          "revenue": 75988471,
-          "operatingProfit": 20437989
+          "revenue": 143803471,
+          "operatingProfit": 24970917
         },
         {
           "division": "서부",
           "office": "수원",
           "officeCode": "A1320",
           "product": "세정유",
-          "quantityDrum": 122.3,
+          "quantityDrum": 126.3,
           "quantityEa": 0,
-          "revenue": 67526860,
-          "operatingProfit": 12025136
+          "revenue": 70886860,
+          "operatingProfit": 13966491
         },
         {
           "division": "동부",
           "office": "울산",
           "officeCode": "A1220",
           "product": "세정유",
-          "quantityDrum": 117.2,
+          "quantityDrum": 137.2,
           "quantityEa": 0,
-          "revenue": 61556600,
-          "operatingProfit": 6474254
+          "revenue": 74596600,
+          "operatingProfit": 7374855
         },
         {
           "division": "서부",
@@ -3144,80 +2945,30 @@
           "office": "천안",
           "officeCode": "A1340",
           "product": "세정유",
-          "quantityDrum": 100.8,
+          "quantityDrum": 121.8,
           "quantityEa": 0,
-          "revenue": 61650260,
-          "operatingProfit": 15387925
+          "revenue": 75942260,
+          "operatingProfit": 16872245
         },
         {
           "division": "동부",
           "office": "포항",
           "officeCode": "A1230",
           "product": "세정유",
-          "quantityDrum": 35.8,
+          "quantityDrum": 81.8,
           "quantityEa": 0,
-          "revenue": 18501680,
-          "operatingProfit": 4503828
-        },
-        {
-          "division": "동부",
-          "office": "부산",
-          "officeCode": "A1210",
-          "product": "세정유(상)",
-          "quantityDrum": 124.5,
-          "quantityEa": 0,
-          "revenue": 67815000,
-          "operatingProfit": 4532928
-        },
-        {
-          "division": "서부",
-          "office": "수원",
-          "officeCode": "A1320",
-          "product": "세정유(상)",
-          "quantityDrum": 4,
-          "quantityEa": 0,
-          "revenue": 3360000,
-          "operatingProfit": 1941355
-        },
-        {
-          "division": "동부",
-          "office": "울산",
-          "officeCode": "A1220",
-          "product": "세정유(상)",
-          "quantityDrum": 20,
-          "quantityEa": 0,
-          "revenue": 13040000,
-          "operatingProfit": 900601
-        },
-        {
-          "division": "중부",
-          "office": "천안",
-          "officeCode": "A1340",
-          "product": "세정유(상)",
-          "quantityDrum": 21,
-          "quantityEa": 0,
-          "revenue": 14292000,
-          "operatingProfit": 1484320
+          "revenue": 43635680,
+          "operatingProfit": 293792
         },
         {
           "division": "중부",
           "office": "충주",
           "officeCode": "A1250",
-          "product": "세정유(상)",
+          "product": "세정유",
           "quantityDrum": 0.7,
           "quantityEa": 0,
           "revenue": 508200,
           "operatingProfit": 11816
-        },
-        {
-          "division": "동부",
-          "office": "포항",
-          "officeCode": "A1230",
-          "product": "세정유(상)",
-          "quantityDrum": 46,
-          "quantityEa": 0,
-          "revenue": 25134000,
-          "operatingProfit": -4210036
         },
         {
           "division": "중부",
@@ -3404,10 +3155,10 @@
           "office": "부산",
           "officeCode": "A1210",
           "product": "열처리유",
-          "quantityDrum": 149.6,
+          "quantityDrum": 150,
           "quantityEa": 0,
-          "revenue": 99700500,
-          "operatingProfit": 2363222
+          "revenue": 100160500,
+          "operatingProfit": 2305204
         },
         {
           "division": "서부",
@@ -3434,10 +3185,10 @@
           "office": "인천",
           "officeCode": "A1310",
           "product": "열처리유",
-          "quantityDrum": 20,
+          "quantityDrum": 24,
           "quantityEa": 0,
-          "revenue": 14534000,
-          "operatingProfit": 1151770
+          "revenue": 16773200,
+          "operatingProfit": 1234416
         },
         {
           "division": "중부",
@@ -3460,26 +3211,6 @@
           "operatingProfit": -2578735
         },
         {
-          "division": "동부",
-          "office": "부산",
-          "officeCode": "A1210",
-          "product": "열처리유(상)",
-          "quantityDrum": 0.4,
-          "quantityEa": 0,
-          "revenue": 460000,
-          "operatingProfit": -58018
-        },
-        {
-          "division": "서부",
-          "office": "인천",
-          "officeCode": "A1310",
-          "product": "열처리유(상)",
-          "quantityDrum": 4,
-          "quantityEa": 0,
-          "revenue": 2239200,
-          "operatingProfit": 82646
-        },
-        {
           "division": "서부",
           "office": "수원",
           "officeCode": "A1320",
@@ -3493,7 +3224,7 @@
           "division": "서부",
           "office": "인천",
           "officeCode": "A1310",
-          "product": "유통소비재(BEX)(상)",
+          "product": "유통소비재(BEX)",
           "quantityDrum": 0,
           "quantityEa": 36,
           "revenue": 206400,
