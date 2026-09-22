@@ -370,11 +370,18 @@ async function convertExcelFiles() {
   try {
     setImportStatus("Excel 구조를 확인하고 있습니다.");
     const next = JSON.parse(JSON.stringify(state.data));
-    if (weeklyFile) next.weekly = [parseWeeklyWorkbook(await readWorkbook(weeklyFile))];
+    let importedWeeklyCount = 0;
+    let importedMonthlyCount = 0;
+    if (weeklyFile) {
+      const weeklyPeriod = parseWeeklyWorkbook(await readWorkbook(weeklyFile));
+      next.weekly = mergePeriods(next.weekly || [], [weeklyPeriod]);
+      importedWeeklyCount = 1;
+    }
     if (monthlyFile) {
       const parsed = parseMonthlyWorkbook(await readWorkbook(monthlyFile));
-      next.monthly = [parsed.monthly];
-      next.monthlyTrend = mergeTrend(next.monthlyTrend || [], parsed.trend);
+      next.monthly = mergePeriods(next.monthly || [], parsed.monthlyPeriods);
+      next.monthlyTrend = mergePeriods(next.monthlyTrend || [], parsed.trends);
+      importedMonthlyCount = parsed.monthlyPeriods.length;
     }
     next.organization = buildOrganization(next);
     next.meta.updatedAt = new Date().toISOString().slice(0, 10);
@@ -385,7 +392,8 @@ async function convertExcelFiles() {
     initializeFilters();
     render();
     $("#downloadButton").disabled = false;
-    setImportStatus("변환이 완료되었습니다. 화면을 확인한 뒤 data.json을 내려받으세요.", "success");
+    const summary = [importedWeeklyCount ? `주간 ${importedWeeklyCount}개` : "", importedMonthlyCount ? `월간 ${importedMonthlyCount}개월` : ""].filter(Boolean).join(", ");
+    setImportStatus(`${summary} 데이터를 기존 이력과 병합했습니다. 화면을 확인한 뒤 data.json을 내려받으세요.`, "success");
   } catch (error) {
     console.error(error);
     setImportStatus(error.message || "변환 중 오류가 발생했습니다.", "error");
@@ -419,8 +427,28 @@ function parseWeeklyWorkbook(workbook) {
 }
 
 function parseMonthlyWorkbook(workbook) {
+  const historyPeriods = parseMonthlyHistorySheets(workbook);
+  const detailedPeriod = parseMonthlyDetailSheet(workbook);
+  let monthlyPeriods = historyPeriods;
+  if (detailedPeriod) monthlyPeriods = mergePeriods(monthlyPeriods, [detailedPeriod]);
+  if (!monthlyPeriods.length) throw new Error("월간 Excel에서 월별 영업소 실적을 읽지 못했습니다.");
+  const trends = monthlyPeriods.map((item) => {
+    const totals = {
+      period: item.period,
+      quantityDrum: sum(item.records, "quantityDrum"),
+      quantityEa: sum(item.records, "quantityEa"),
+      revenue: sum(item.records, "revenue"),
+      operatingProfit: sum(item.records, "operatingProfit")
+    };
+    totals.operatingMargin = safeRate(totals.operatingProfit, totals.revenue);
+    return roundRecord(totals);
+  });
+  return { monthlyPeriods, trends };
+}
+
+function parseMonthlyDetailSheet(workbook) {
   const sheet = workbook.Sheets["거래형태별 이익"];
-  if (!sheet) throw new Error("월간 Excel에서 ‘거래형태별 이익’ 시트를 찾지 못했습니다.");
+  if (!sheet) return null;
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
   const headers = rows[1] || [];
   const productIndex = headers.findIndex((value) => ["유종", "제품군", "품목군"].includes(String(value || "").trim()));
@@ -446,11 +474,51 @@ function parseMonthlyWorkbook(workbook) {
     target.operatingProfit += numeric(row[operatingProfitIndex]);
   });
   const records = [...groups.values()].map(roundRecord);
-  if (!records.length) throw new Error("월간 Excel에서 영업소 이익 실적을 읽지 못했습니다.");
+  if (!records.length) return null;
   const period = detectMonthlyPeriod(workbook) || new Date().toISOString().slice(0, 7);
-  const totals = { period, quantityDrum: sum(records, "quantityDrum"), quantityEa: sum(records, "quantityEa"), revenue: sum(records, "revenue"), operatingProfit: sum(records, "operatingProfit") };
-  totals.operatingMargin = safeRate(totals.operatingProfit, totals.revenue);
-  return { monthly: { period, records }, trend: totals };
+  return { period, records };
+}
+
+function parseMonthlyHistorySheets(workbook) {
+  return workbook.SheetNames
+    .map((sheetName) => ({ sheetName, period: periodFromSheetName(sheetName) }))
+    .filter((item) => item.period)
+    .map((item) => parseMonthlyPeriodSheet(workbook.Sheets[item.sheetName], item.period))
+    .filter(Boolean)
+    .sort((a, b) => a.period.localeCompare(b.period));
+}
+
+function parseMonthlyPeriodSheet(sheet, period) {
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
+  const headers = rows[1] || [];
+  const quantityIndex = headers.indexOf("실적수량");
+  const revenueIndex = headers.indexOf("실적금액");
+  const grossProfitIndex = headers.indexOf("실적매출이익");
+  const operatingProfitIndex = headers.indexOf("실적영업이익");
+  if ([quantityIndex, revenueIndex, grossProfitIndex, operatingProfitIndex].some((index) => index < 0)) return null;
+  const groups = new Map();
+  rows.slice(2).forEach((row) => {
+    const division = DIVISION_MAP[row[5]];
+    const officeCode = row[6];
+    const office = String(row[7] || "").replace("영업소", "").trim();
+    const unit = row[8];
+    if (!division || !OFFICE_CODES.has(officeCode) || !office || !["DRUM", "EA"].includes(unit)) return;
+    const id = [division, office, officeCode].join("||");
+    if (!groups.has(id)) groups.set(id, { division, office, officeCode, product: "유종 미분류", quantityDrum: 0, quantityEa: 0, revenue: 0, grossProfit: 0, operatingProfit: 0 });
+    const target = groups.get(id);
+    target[unit === "DRUM" ? "quantityDrum" : "quantityEa"] += numeric(row[quantityIndex]);
+    target.revenue += numeric(row[revenueIndex]);
+    target.grossProfit += numeric(row[grossProfitIndex]);
+    target.operatingProfit += numeric(row[operatingProfitIndex]);
+  });
+  const records = [...groups.values()].map(roundRecord);
+  const hasActuals = records.some((row) => row.quantityDrum || row.quantityEa || row.revenue || row.grossProfit || row.operatingProfit);
+  return hasActuals ? { period, records } : null;
+}
+
+function periodFromSheetName(sheetName) {
+  const match = String(sheetName).match(/^(\d{2})(0[1-9]|1[0-2])$/);
+  return match ? `20${match[1]}-${match[2]}` : null;
 }
 
 function detectMonthlyPeriod(workbook) {
@@ -473,7 +541,11 @@ function buildOrganization(data) {
   return DIVISIONS.map((division) => ({ division, offices: [...map.get(division)].sort((a, b) => a.localeCompare(b, "ko")) }));
 }
 
-function mergeTrend(rows, row) { return [...rows.filter((item) => item.period !== row.period), row].sort((a, b) => a.period.localeCompare(b.period)); }
+function mergePeriods(existing, incoming) {
+  const map = new Map((existing || []).map((item) => [item.period, item]));
+  (incoming || []).forEach((item) => map.set(item.period, item));
+  return [...map.values()].sort((a, b) => a.period.localeCompare(b.period));
+}
 function numeric(value) { const result = Number(value); return Number.isFinite(result) ? result : 0; }
 function roundRecord(row) { return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === "number" ? Math.round(value * 100) / 100 : value])); }
 function parseKoreanDate(value) { const match = String(value || "").match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/); if (!match) return null; let year = Number(match[1]); if (year > 2100 && String(year).startsWith("26")) year = 2026; return `${year}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`; }
