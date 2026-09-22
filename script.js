@@ -174,7 +174,6 @@ function render() {
 function renderWeekly(rows) {
   $("#kpiGrid").classList.remove("monthly-eight");
   const drum = rows.filter((row) => row.packageUnit === "DRUM");
-  const ea = rows.filter((row) => row.packageUnit === "EA");
   const revenue = sum(rows, "revenue");
   const planRevenue = sum(rows, "planRevenue");
   const priorRevenue = sum(rows, "priorRevenue");
@@ -182,7 +181,7 @@ function renderWeekly(rows) {
   const ytdPriorRevenue = sum(rows, "ytdPriorRevenue");
   const cards = [
     { title: "주간 수량", value: `${number(sum(drum, "quantity"), 1)} DRUM`, meta: `계획 대비 ${percent(safeRate(sum(drum, "quantity"), sum(drum, "planQuantity")))}`, accent: "#2d6cdf" },
-    { title: "소포장 수량", value: `${number(sum(ea, "quantity"))} EA`, meta: `계획 대비 ${percent(safeRate(sum(ea, "quantity"), sum(ea, "planQuantity")))}`, accent: "#36a9c9" },
+    { title: "DM 전년 동기비", value: percent(safeRate(sum(drum, "quantity"), sum(drum, "priorQuantity"))), meta: `전년 ${number(sum(drum, "priorQuantity"), 1)} DRUM`, accent: "#36a9c9" },
     { title: "주간 매출", value: `${moneyBillion(revenue)}억원`, meta: `${moneyMillion(revenue)}백만원`, accent: "#16856c" },
     { title: "매출 달성률", value: percent(safeRate(revenue, planRevenue)), meta: `계획 ${moneyBillion(planRevenue)}억원`, accent: "#7568d6" },
     { title: "전년 동기비", value: percent(safeRate(revenue, priorRevenue)), meta: differenceLabel(revenue, priorRevenue), accent: "#e8892e" },
@@ -203,10 +202,12 @@ function renderMonthly(rows) {
   const priorRevenue = sum(rows, "priorRevenue");
   const ytdRevenue = sum(rows, "ytdRevenue");
   const ytdPriorRevenue = sum(rows, "ytdPriorRevenue");
+  const drumQuantity = sum(rows, "quantityDrum");
+  const priorDrumQuantity = sum(rows, "priorQuantityDrum");
   const operatingProfit = sum(rows, "operatingProfit");
   const cards = [
-    { title: "월간 수량", value: `${number(sum(rows, "quantityDrum"), 1)} DRUM`, meta: `계획 대비 ${percent(safeRate(sum(rows, "quantityDrum"), sum(rows, "planQuantityDrum")))}`, accent: "#2d6cdf" },
-    { title: "소포장 수량", value: `${number(sum(rows, "quantityEa"))} EA`, meta: `계획 대비 ${percent(safeRate(sum(rows, "quantityEa"), sum(rows, "planQuantityEa")))}`, accent: "#36a9c9" },
+    { title: "월간 수량", value: `${number(drumQuantity, 1)} DRUM`, meta: `계획 대비 ${percent(safeRate(drumQuantity, sum(rows, "planQuantityDrum")))}`, accent: "#2d6cdf" },
+    { title: "DM 전년 동기비", value: percent(safeRate(drumQuantity, priorDrumQuantity)), meta: `전년 ${number(priorDrumQuantity, 1)} DRUM`, accent: "#36a9c9" },
     { title: "월간 매출", value: `${moneyBillion(revenue)}억원`, meta: `${moneyMillion(revenue)}백만원`, accent: "#16856c" },
     { title: "매출 달성률", value: percent(safeRate(revenue, planRevenue)), meta: `계획 ${moneyBillion(planRevenue)}억원`, accent: "#7568d6" },
     { title: "전년 동기비", value: percent(safeRate(revenue, priorRevenue)), meta: differenceLabel(revenue, priorRevenue), accent: "#e8892e" },
