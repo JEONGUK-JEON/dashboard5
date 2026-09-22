@@ -172,6 +172,7 @@ function render() {
 }
 
 function renderWeekly(rows) {
+  $("#kpiGrid").classList.remove("monthly-eight");
   const drum = rows.filter((row) => row.packageUnit === "DRUM");
   const ea = rows.filter((row) => row.packageUnit === "EA");
   const revenue = sum(rows, "revenue");
@@ -196,16 +197,22 @@ function renderWeekly(rows) {
 }
 
 function renderMonthly(rows) {
+  $("#kpiGrid").classList.add("monthly-eight");
   const revenue = sum(rows, "revenue");
-  const grossProfit = sum(rows, "grossProfit");
+  const planRevenue = sum(rows, "planRevenue");
+  const priorRevenue = sum(rows, "priorRevenue");
+  const ytdRevenue = sum(rows, "ytdRevenue");
+  const ytdPriorRevenue = sum(rows, "ytdPriorRevenue");
   const operatingProfit = sum(rows, "operatingProfit");
   const cards = [
-    { title: "판매수량", value: `${number(sum(rows, "quantityDrum"), 1)} DRUM`, meta: "DRUM 기준", accent: "#2d6cdf" },
-    { title: "소포장 수량", value: `${number(sum(rows, "quantityEa"))} EA`, meta: "EA 기준", accent: "#36a9c9" },
-    { title: "매출", value: `${moneyBillion(revenue)}억원`, meta: `${moneyMillion(revenue)}백만원`, accent: "#16856c" },
-    { title: "매출이익", value: `${moneyBillion(grossProfit)}억원`, meta: `이익률 ${percent(safeRate(grossProfit, revenue))}`, accent: "#7568d6" },
+    { title: "월간 수량", value: `${number(sum(rows, "quantityDrum"), 1)} DRUM`, meta: `계획 대비 ${percent(safeRate(sum(rows, "quantityDrum"), sum(rows, "planQuantityDrum")))}`, accent: "#2d6cdf" },
+    { title: "소포장 수량", value: `${number(sum(rows, "quantityEa"))} EA`, meta: `계획 대비 ${percent(safeRate(sum(rows, "quantityEa"), sum(rows, "planQuantityEa")))}`, accent: "#36a9c9" },
+    { title: "월간 매출", value: `${moneyBillion(revenue)}억원`, meta: `${moneyMillion(revenue)}백만원`, accent: "#16856c" },
+    { title: "매출 달성률", value: percent(safeRate(revenue, planRevenue)), meta: `계획 ${moneyBillion(planRevenue)}억원`, accent: "#7568d6" },
+    { title: "전년 동기비", value: percent(safeRate(revenue, priorRevenue)), meta: differenceLabel(revenue, priorRevenue), accent: "#e8892e" },
+    { title: "누계 매출", value: `${moneyBillion(ytdRevenue)}억원`, meta: `전년 동기비 ${percent(safeRate(ytdRevenue, ytdPriorRevenue))}`, accent: "#0c2240" },
     { title: "영업이익", value: `${moneyBillion(operatingProfit)}억원`, meta: operatingProfit >= 0 ? "흑자" : "적자", accent: operatingProfit >= 0 ? "#e8892e" : "#d84a58" },
-    { title: "영업이익률", value: percent(safeRate(operatingProfit, revenue)), meta: "영업이익 ÷ 매출", accent: "#0c2240" }
+    { title: "영업이익률", value: percent(safeRate(operatingProfit, revenue)), meta: "영업이익 ÷ 매출", accent: "#172f55" }
   ];
   renderKpis(cards);
 
@@ -324,34 +331,32 @@ function renderOfficeMarginChart(rows) {
 }
 
 function renderProductViews(rows) {
-  const products = aggregate(rows, ["product"], ["quantityDrum", "quantityEa", "revenue", "grossProfit", "operatingProfit"]);
-  products.forEach((row) => { row.grossMargin = safeRate(row.grossProfit, row.revenue); row.operatingMargin = safeRate(row.operatingProfit, row.revenue); });
+  const products = aggregate(rows, ["product"], ["quantityDrum", "quantityEa", "revenue", "operatingProfit"]);
+  products.forEach((row) => { row.operatingMargin = safeRate(row.operatingProfit, row.revenue); });
   replaceChart("productMarginChart", {
     type: "bar",
-    data: { labels: products.map((row) => row.product), datasets: [
-      { label: "매출이익률", data: products.map((row) => (row.grossMargin || 0) * 100), backgroundColor: "#36a9c9", borderRadius: 5 },
-      { label: "영업이익률", data: products.map((row) => (row.operatingMargin || 0) * 100), backgroundColor: "#2d6cdf", borderRadius: 5 }
-    ] },
+    data: { labels: products.map((row) => row.product), datasets: [{ label: "영업이익률", data: products.map((row) => (row.operatingMargin || 0) * 100), backgroundColor: "#2d6cdf", borderRadius: 5 }] },
     options: { ...baseChartOptions(), scales: { x: { grid: { display: false } }, y: { grid: { color: "#edf1f6" }, ticks: { callback: (value) => `${value}%` } } } }
   });
-  const body = products.map((row) => `<tr><td>${escapeHtml(row.product)}</td><td>${number(row.quantityDrum, 1)}</td><td>${number(row.quantityEa)}</td><td>${moneyMillion(row.revenue, 1)}</td><td>${moneyMillion(row.grossProfit, 1)}</td><td>${percent(row.grossMargin)}</td><td>${moneyMillion(row.operatingProfit, 1)}</td><td class="${row.operatingMargin < 0 ? "rate-negative" : "rate-positive"}">${percent(row.operatingMargin)}</td></tr>`).join("");
-  $("#productTable").innerHTML = `<thead><tr><th>유종</th><th>DRUM</th><th>EA</th><th>매출</th><th>매출이익</th><th>매출이익률</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody>${body || emptyRow(8)}</tbody>`;
+  const body = products.map((row) => `<tr><td>${escapeHtml(row.product)}</td><td>${number(row.quantityDrum, 1)}</td><td>${number(row.quantityEa)}</td><td>${moneyMillion(row.revenue, 1)}</td><td>${moneyMillion(row.operatingProfit, 1)}</td><td class="${row.operatingMargin < 0 ? "rate-negative" : "rate-positive"}">${percent(row.operatingMargin)}</td></tr>`).join("");
+  $("#productTable").innerHTML = `<thead><tr><th>유종</th><th>DRUM</th><th>EA</th><th>매출</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody>${body || emptyRow(6)}</tbody>`;
 }
 
 function renderMonthlyTable(rows) {
-  const groups = aggregate(rows, ["division", "office"], ["quantityDrum", "quantityEa", "revenue", "grossProfit", "operatingProfit"]);
+  const monthlyMetrics = ["quantityDrum", "quantityEa", "revenue", "planRevenue", "priorRevenue", "ytdRevenue", "operatingProfit"];
+  const groups = aggregate(rows, ["division", "office"], monthlyMetrics);
   const visibleDivisions = DIVISIONS.filter((division) => groups.some((row) => row.division === division));
   const body = visibleDivisions.map((division) => {
     const offices = groups.filter((row) => row.division === division).sort((a, b) => b.revenue - a.revenue);
-    const total = aggregate(offices, ["division"], ["quantityDrum", "quantityEa", "revenue", "grossProfit", "operatingProfit"])[0];
+    const total = aggregate(offices, ["division"], monthlyMetrics)[0];
     const totalRow = state.office === "전체" && total ? monthlyResultRow(total, `${division} 합계`, true) : "";
     return totalRow + offices.map((row) => monthlyResultRow(row, row.office, false)).join("");
   }).join("");
-  $("#monthlyTable").innerHTML = `<thead><tr><th>본부</th><th>영업소</th><th>DRUM</th><th>EA</th><th>매출</th><th>매출이익</th><th>매출이익률</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody>${body || emptyRow(9)}</tbody>`;
+  $("#monthlyTable").innerHTML = `<thead><tr><th>본부</th><th>영업소</th><th>DRUM</th><th>EA</th><th>매출</th><th>계획 달성률</th><th>전년 동기비</th><th>누계 매출</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody>${body || emptyRow(10)}</tbody>`;
 }
 
 function monthlyResultRow(row, label, isSubtotal) {
-  return `<tr class="${isSubtotal ? "subtotal-row" : "office-row"}"><td>${escapeHtml(row.division)}</td><td>${escapeHtml(label)}</td><td>${number(row.quantityDrum, 1)}</td><td>${number(row.quantityEa)}</td><td>${moneyMillion(row.revenue, 1)}</td><td>${moneyMillion(row.grossProfit, 1)}</td><td>${percent(safeRate(row.grossProfit, row.revenue))}</td><td>${moneyMillion(row.operatingProfit, 1)}</td><td class="${row.operatingProfit < 0 ? "rate-negative" : "rate-positive"}">${percent(safeRate(row.operatingProfit, row.revenue))}</td></tr>`;
+  return `<tr class="${isSubtotal ? "subtotal-row" : "office-row"}"><td>${escapeHtml(row.division)}</td><td>${escapeHtml(label)}</td><td>${number(row.quantityDrum, 1)}</td><td>${number(row.quantityEa)}</td><td>${moneyMillion(row.revenue, 1)}</td><td>${percent(safeRate(row.revenue, row.planRevenue))}</td><td>${percent(safeRate(row.revenue, row.priorRevenue))}</td><td>${moneyMillion(row.ytdRevenue, 1)}</td><td>${moneyMillion(row.operatingProfit, 1)}</td><td class="${row.operatingProfit < 0 ? "rate-negative" : "rate-positive"}">${percent(safeRate(row.operatingProfit, row.revenue))}</td></tr>`;
 }
 
 function emptyRow(columns) { return `<tr><td colspan="${columns}" class="empty-cell">선택 조건에 해당하는 데이터가 없습니다.</td></tr>`; }
@@ -430,7 +435,7 @@ function parseMonthlyWorkbook(workbook) {
   const historyPeriods = parseMonthlyHistorySheets(workbook);
   const detailedPeriod = parseMonthlyDetailSheet(workbook);
   let monthlyPeriods = historyPeriods;
-  if (detailedPeriod) monthlyPeriods = mergePeriods(monthlyPeriods, [detailedPeriod]);
+  if (detailedPeriod && !monthlyPeriods.some((item) => item.period === detailedPeriod.period)) monthlyPeriods = mergePeriods(monthlyPeriods, [detailedPeriod]);
   if (!monthlyPeriods.length) throw new Error("월간 Excel에서 월별 영업소 실적을 읽지 못했습니다.");
   const trends = monthlyPeriods.map((item) => {
     const totals = {
@@ -491,11 +496,16 @@ function parseMonthlyHistorySheets(workbook) {
 function parseMonthlyPeriodSheet(sheet, period) {
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
   const headers = rows[1] || [];
-  const quantityIndex = headers.indexOf("실적수량");
-  const revenueIndex = headers.indexOf("실적금액");
-  const grossProfitIndex = headers.indexOf("실적매출이익");
-  const operatingProfitIndex = headers.indexOf("실적영업이익");
-  if ([quantityIndex, revenueIndex, grossProfitIndex, operatingProfitIndex].some((index) => index < 0)) return null;
+  const indices = (label) => headers.reduce((found, value, index) => String(value || "").trim() === label ? [...found, index] : found, []);
+  const planQuantityIndices = indices("계획수량");
+  const quantityIndices = indices("실적수량");
+  const priorQuantityIndices = indices("전년수량");
+  const planRevenueIndices = indices("계획금액");
+  const revenueIndices = indices("실적금액");
+  const priorRevenueIndices = indices("전년금액");
+  const grossProfitIndices = indices("실적매출이익");
+  const operatingProfitIndices = indices("실적영업이익");
+  if (!quantityIndices.length || !revenueIndices.length || !operatingProfitIndices.length) return null;
   const groups = new Map();
   rows.slice(2).forEach((row) => {
     const division = DIVISION_MAP[row[5]];
@@ -504,12 +514,23 @@ function parseMonthlyPeriodSheet(sheet, period) {
     const unit = row[8];
     if (!division || !OFFICE_CODES.has(officeCode) || !office || !["DRUM", "EA"].includes(unit)) return;
     const id = [division, office, officeCode].join("||");
-    if (!groups.has(id)) groups.set(id, { division, office, officeCode, product: "유종 미분류", quantityDrum: 0, quantityEa: 0, revenue: 0, grossProfit: 0, operatingProfit: 0 });
+    if (!groups.has(id)) groups.set(id, { division, office, officeCode, product: "유종 미분류", planQuantityDrum: 0, planQuantityEa: 0, quantityDrum: 0, quantityEa: 0, priorQuantityDrum: 0, priorQuantityEa: 0, ytdPlanQuantityDrum: 0, ytdPlanQuantityEa: 0, ytdQuantityDrum: 0, ytdQuantityEa: 0, ytdPriorQuantityDrum: 0, ytdPriorQuantityEa: 0, planRevenue: 0, revenue: 0, priorRevenue: 0, ytdPlanRevenue: 0, ytdRevenue: 0, ytdPriorRevenue: 0, grossProfit: 0, operatingProfit: 0 });
     const target = groups.get(id);
-    target[unit === "DRUM" ? "quantityDrum" : "quantityEa"] += numeric(row[quantityIndex]);
-    target.revenue += numeric(row[revenueIndex]);
-    target.grossProfit += numeric(row[grossProfitIndex]);
-    target.operatingProfit += numeric(row[operatingProfitIndex]);
+    const unitSuffix = unit === "DRUM" ? "Drum" : "Ea";
+    target[`planQuantity${unitSuffix}`] += numeric(row[planQuantityIndices[0]]);
+    target[`quantity${unitSuffix}`] += numeric(row[quantityIndices[0]]);
+    target[`priorQuantity${unitSuffix}`] += numeric(row[priorQuantityIndices[0]]);
+    target[`ytdPlanQuantity${unitSuffix}`] += numeric(row[planQuantityIndices[1]]);
+    target[`ytdQuantity${unitSuffix}`] += numeric(row[quantityIndices[1]]);
+    target[`ytdPriorQuantity${unitSuffix}`] += numeric(row[priorQuantityIndices[1]]);
+    target.planRevenue += numeric(row[planRevenueIndices[0]]);
+    target.revenue += numeric(row[revenueIndices[0]]);
+    target.priorRevenue += numeric(row[priorRevenueIndices[0]]);
+    target.ytdPlanRevenue += numeric(row[planRevenueIndices[1]]);
+    target.ytdRevenue += numeric(row[revenueIndices[1]]);
+    target.ytdPriorRevenue += numeric(row[priorRevenueIndices[1]]);
+    target.grossProfit += numeric(row[grossProfitIndices[0]]);
+    target.operatingProfit += numeric(row[operatingProfitIndices[0]]);
   });
   const records = [...groups.values()].map(roundRecord);
   const hasActuals = records.some((row) => row.quantityDrum || row.quantityEa || row.revenue || row.grossProfit || row.operatingProfit);
