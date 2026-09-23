@@ -2,7 +2,7 @@
   "meta": {
     "company": "BWC",
     "title": "BWC 영업 대시보드",
-    "updatedAt": "2026-09-22",
+    "updatedAt": "2026-09-23",
     "currency": "KRW",
     "weeklySource": "※ 작성방법_주 마감.xlsx",
     "monthlySource": "※ 작성방법_마감자료.xlsx",
@@ -27,8 +27,7 @@
       "offices": [
         "광주",
         "천안",
-        "충주",
-        "포항"
+        "충주"
       ]
     },
     {
@@ -816,7 +815,7 @@
           "operatingProfit": -13044444
         },
         {
-          "division": "중부",
+          "division": "동부",
           "office": "포항",
           "officeCode": "A1230",
           "product": "유종 미분류",
@@ -1029,7 +1028,7 @@
           "operatingProfit": -13321200
         },
         {
-          "division": "중부",
+          "division": "동부",
           "office": "포항",
           "officeCode": "A1230",
           "product": "유종 미분류",
@@ -1242,7 +1241,7 @@
           "operatingProfit": -10619836
         },
         {
-          "division": "중부",
+          "division": "동부",
           "office": "포항",
           "officeCode": "A1230",
           "product": "유종 미분류",

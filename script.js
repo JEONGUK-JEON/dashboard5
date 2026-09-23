@@ -143,9 +143,11 @@ function renderDivisionButtons() {
 }
 
 function refreshOfficeButtons() {
-  const offices = state.data.organization
+  // 영업소 버튼은 현재 조직 기준(OFFICE_META)을 사용합니다.
+  // 과거 데이터에 다른 본부 소속 이력이 있어도 현재 본부 필터에는 섞이지 않습니다.
+  const offices = Object.values(OFFICE_META)
     .filter((item) => state.division === "전체" || item.division === state.division)
-    .flatMap((item) => item.offices)
+    .map((item) => item.office)
     .filter((value, index, array) => array.indexOf(value) === index)
     .sort((a, b) => a.localeCompare(b, "ko"));
   if (!offices.includes(state.office)) state.office = "전체";
@@ -316,11 +318,37 @@ function renderWeeklyQuantityChart(rows) {
 }
 
 function renderWeeklyShareChart(rows) {
-  const groups = aggregate(rows, ["division"], ["revenue"]);
+  // 전체 조회 시에는 본부별, 특정 본부 조회 시에는 해당 본부 산하 영업소별 매출 비중을 표시합니다.
+  const groupKey = state.division === "전체" ? "division" : "office";
+  const groups = aggregate(rows, [groupKey], ["revenue"])
+    .filter((row) => Number(row.revenue || 0) !== 0)
+    .sort((a, b) => Number(b.revenue || 0) - Number(a.revenue || 0));
+  const totalRevenue = sum(groups, "revenue");
+  const title = document.getElementById("weeklyShareTitle");
+  if (title) title.textContent = state.division === "전체" ? "본부별 매출 비중" : "영업소별 매출 비중";
+
   replaceChart("weeklyShareChart", {
     type: "doughnut",
-    data: { labels: groups.map((row) => row.division), datasets: [{ data: groups.map((row) => row.revenue), backgroundColor: COLORS, borderWidth: 3, borderColor: "#fff" }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: "66%", plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, font: { family: "Noto Sans KR", size: 10 } } }, tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${moneyMillion(ctx.raw)}백만원` } } } }
+    data: {
+      labels: groups.map((row) => row[groupKey]),
+      datasets: [{ data: groups.map((row) => row.revenue), backgroundColor: COLORS, borderWidth: 3, borderColor: "#fff" }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "66%",
+      plugins: {
+        legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, font: { family: "Noto Sans KR", size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const share = safeRate(Number(ctx.raw || 0), totalRevenue);
+              return `${ctx.label}: ${moneyMillion(ctx.raw)}백만원 (${percent(share)})`;
+            }
+          }
+        }
+      }
+    }
   });
 }
 
@@ -473,17 +501,14 @@ function parseWeeklyWorkbook(workbook) {
   const sheet = workbook.Sheets["주 마감"];
   if (!sheet) throw new Error("주간 Excel에서 ‘주 마감’ 시트를 찾지 못했습니다.");
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
-  let division = null;
-  let office = null;
   const records = [];
   rows.slice(8).forEach((row) => {
-    if (DIVISIONS.includes(row[0])) division = row[0];
-    if (row[1] && row[1] !== "합계") office = String(row[1]).replace("영업소", "").trim();
-    const code = row[2];
-    const unit = row[3];
-    if (!division || !office || !OFFICE_CODES.has(code) || !["DRUM", "EA"].includes(unit)) return;
+    const code = String(row[2] || "").trim();
+    const meta = OFFICE_META[code];
+    const unit = String(row[3] || "").trim();
+    if (!meta || !["DRUM", "EA"].includes(unit)) return;
     records.push({
-      division, office, officeCode: code, packageUnit: unit,
+      division: meta.division, office: meta.office, officeCode: code, packageUnit: unit,
       planQuantity: numeric(row[4]), quantity: numeric(row[5]), priorQuantity: numeric(row[7]),
       planRevenue: numeric(row[9]), revenue: numeric(row[10]), priorRevenue: numeric(row[12]),
       ytdPlanQuantity: numeric(row[14]), ytdQuantity: numeric(row[15]), ytdPriorQuantity: numeric(row[17]),
@@ -610,11 +635,12 @@ function parseMonthlyDetailSheet(workbook) {
   if ([quantityIndex, revenueIndex, grossProfitIndex, operatingProfitIndex].some((index) => index < 0)) throw new Error("월간 Excel의 실적 열 구성이 기존 양식과 다릅니다.");
   const groups = new Map();
   rows.slice(2).forEach((row) => {
-    const division = DIVISION_MAP[row[5]];
-    const officeCode = row[6];
-    const office = String(row[7] || "").replace("영업소", "").trim();
-    const unit = row[11];
-    if (!division || !OFFICE_CODES.has(officeCode) || !office || !["DRUM", "EA"].includes(unit)) return;
+    const officeCode = String(row[6] || "").trim();
+    const meta = OFFICE_META[officeCode];
+    const unit = String(row[11] || "").trim();
+    if (!meta || !["DRUM", "EA"].includes(unit)) return;
+    const division = meta.division;
+    const office = meta.office;
     const product = productIndex >= 0 && row[productIndex] ? String(row[productIndex]).trim() : "유종 미분류";
     const id = [division, office, officeCode, product].join("||");
     if (!groups.has(id)) groups.set(id, { division, office, officeCode, product, quantityDrum: 0, quantityEa: 0, revenue: 0, grossProfit: 0, operatingProfit: 0 });
@@ -654,11 +680,12 @@ function parseMonthlyPeriodSheet(sheet, period) {
   if (!quantityIndices.length || !revenueIndices.length || !operatingProfitIndices.length) return null;
   const groups = new Map();
   rows.slice(2).forEach((row) => {
-    const division = DIVISION_MAP[row[5]];
-    const officeCode = row[6];
-    const office = String(row[7] || "").replace("영업소", "").trim();
-    const unit = row[8];
-    if (!division || !OFFICE_CODES.has(officeCode) || !office || !["DRUM", "EA"].includes(unit)) return;
+    const officeCode = String(row[6] || "").trim();
+    const meta = OFFICE_META[officeCode];
+    const unit = String(row[8] || "").trim();
+    if (!meta || !["DRUM", "EA"].includes(unit)) return;
+    const division = meta.division;
+    const office = meta.office;
     const id = [division, office, officeCode].join("||");
     if (!groups.has(id)) groups.set(id, { division, office, officeCode, product: "유종 미분류", planQuantityDrum: 0, planQuantityEa: 0, quantityDrum: 0, quantityEa: 0, priorQuantityDrum: 0, priorQuantityEa: 0, ytdPlanQuantityDrum: 0, ytdPlanQuantityEa: 0, ytdQuantityDrum: 0, ytdQuantityEa: 0, ytdPriorQuantityDrum: 0, ytdPriorQuantityEa: 0, planRevenue: 0, revenue: 0, priorRevenue: 0, ytdPlanRevenue: 0, ytdRevenue: 0, ytdPriorRevenue: 0, grossProfit: 0, operatingProfit: 0 });
     const target = groups.get(id);
@@ -702,9 +729,9 @@ function detectMonthlyPeriod(workbook) {
   return latest ? `${yearText}-${String(latest).padStart(2, "0")}` : null;
 }
 
-function buildOrganization(data) {
+function buildOrganization() {
   const map = new Map(DIVISIONS.map((division) => [division, new Set()]));
-  [...data.weekly.flatMap((item) => item.records), ...data.monthly.flatMap((item) => item.records)].forEach((row) => map.get(row.division)?.add(row.office));
+  Object.values(OFFICE_META).forEach((item) => map.get(item.division)?.add(item.office));
   return DIVISIONS.map((division) => ({ division, offices: [...map.get(division)].sort((a, b) => a.localeCompare(b, "ko")) }));
 }
 
